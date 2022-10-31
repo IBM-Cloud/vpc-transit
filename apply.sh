@@ -13,7 +13,7 @@ check_finish() {
 
 show_help() {
   cat << 'EOF'
-./apply.sh [-?] [-h] [-d] [-p] [dir | (start|: end|:)]
+./apply.sh [-?] [-h] [-d] [-p] (start | : ) | (end | : )
 apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
 -? - this message
 -h - this message
@@ -22,11 +22,11 @@ apply or destroy the resources in this example by steping into each of the terra
      Parameters[end] and [start end] are still with respect to ascending order.
 
 dir - apply in one directory
-start|: - start directory or : to start at the beginning
-end|: - end directory or : to end at the end
+start | : - start directory or : to start at the beginning
+end | : - end directory or : to end at the end
 
 Examples:
-./apply.sh ;# create all resources
+./apply.sh : :;# create all resources
 ./apply.sh spokes_tf ;# terraform in spokes_tf
 ./apply.sh spokes_tf : ;# terraform in each directory in order stop after spokes_tf is executed
 ./apply.sh : spokes_tf ;# terraform start in first directory and stop after spokes_tf is executed
@@ -63,10 +63,9 @@ shift $((OPTIND-1))
 
 # handle [end] or [start end]
 case $# in
-  0) tf="$all";;
+  0) show_help; success=true; exit 0;;
   1) tf=$1;;
   2)
-    # same as 1
     start=$1
     stop=$2
     if [ $start = ":" ]; then

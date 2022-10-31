@@ -21,7 +21,6 @@ export
 *.qcow2
 credentials.json
 config/
-*.tfvars
 *.plan
 local.env
 venv
