@@ -8,7 +8,7 @@ region   = "us-south" # change as desired
 
 # monification of the rest are not required for the initial steps of the tutorial
 make_redis  = true
-spoke_count = 1 #set to 0 to remove spokes
+spoke_count = 2 #set to 0 to remove spokes
 zones       = 2
 
 # firewall is optional.  If true firewall NLB is optional, if lb true set the number of firewalls

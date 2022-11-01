@@ -140,7 +140,7 @@ locals {
   # address prefixes.  Select the firewall (zone_number) in the transit zone.
   enterprise_to_spokes = flatten([for spoke, zones in local.spokes_zones : [
     for zone_number, spoke_zone in zones : {
-      name        = "z${spoke_zone.zone}-to-spoke-${zone-number}"
+      name        = "z${spoke_zone.zone}-to-spoke-${zone_number}"
       zone        = spoke_zone.zone
       cidr        = spoke_zone.cidr
       zone_number = zone_number

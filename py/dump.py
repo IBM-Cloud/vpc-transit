@@ -62,6 +62,8 @@ def dump_vpc_instances(name, instances):
       print(f'  {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]}')
 
 def dump_test_instances(tf_dirs):
+    if len(tf_dirs.test_instances_tf) == 0:
+      return
     dump_vpc_instances("enterprise", tf_dirs.test_instances_tf.enterprise)
     dump_vpc_instances("transit", tf_dirs.test_instances_tf.transit)
     for spoke_number, spoke in tf_dirs.test_instances_tf.spokes.items():
