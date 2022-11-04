@@ -70,14 +70,16 @@ output "spokes" {
 }
 
 /*
+todo
+
 module "transit" {
   source            = "./vpc_test_instances_tf"
   name              = "${local.settings.basename}-transit"
   settings          = local.settings
   tags              = local.tags
   resource_group_id = local.settings.resource_group_id
-  make_route_table  = true
-  #make_route_table = false
+  make_firewall_route_table  = true
+  #make_firewall_route_table = false
   zones = local.transit_zones
   myip  = local.settings.myip
   # todo look at the security groups more closely
@@ -94,7 +96,7 @@ module "spokes" {
   settings                     = local.settings
   tags                         = local.tags
   resource_group_id            = local.settings.resource_group_id
-  make_route_table             = false
+  make_firewall_route_table             = false
   zones                        = each.value
   myip                         = local.settings.myip
   security_group_inbound_cidrs = [local.settings.enterprise_cidr, local.settings.cloud_cidr]

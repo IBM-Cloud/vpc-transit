@@ -2,6 +2,8 @@
 # - firewall instances and possibly associated network load balancer
 # - vpc ingress route table and routes
 # - vpc address filter to advertise routes through the transit vpc
+
+# todo
 # - prefix filters to avoid leaking the address filters
 
 data "terraform_remote_state" "config" {
@@ -41,13 +43,14 @@ data "terraform_remote_state" "transit_spoke_tgw" {
 }
 
 locals {
-  settings          = data.terraform_remote_state.config.outputs.settings
+  config_tf         = data.terraform_remote_state.config.outputs
+  settings          = local.config_tf.settings
   provider_region   = local.settings.region
   tags              = local.settings.tags
   transit_vpc       = data.terraform_remote_state.transit.outputs.vpc
-  enterprise_zones  = data.terraform_remote_state.config.outputs.enterprise_zones
-  transit_zones     = data.terraform_remote_state.config.outputs.transit_zones
-  spokes_zones      = data.terraform_remote_state.config.outputs.spokes_zones
+  enterprise_zones  = local.config_tf.enterprise_zones
+  transit_zones     = local.config_tf.transit_zones
+  spokes_zones      = local.config_tf.spokes_zones
   enterprise_vpc    = data.terraform_remote_state.enterprise.outputs.vpc
   enterprise_link   = data.terraform_remote_state.enterprise_link.outputs
   transit_spoke_tgw = data.terraform_remote_state.transit_spoke_tgw.outputs
@@ -102,7 +105,9 @@ module "transit_zones" {
 # - spokes need routes to the enterprise
 # - enterprise need routes to the spokes
 locals {
-  address_prefixes = concat(flatten(local.spokes_zones), local.enterprise_zones)
+  # todo
+  #address_prefixes = concat(flatten(local.spokes_zones), local.enterprise_zones)
+  address_prefixes = local.enterprise_zones
 }
 resource "ibm_is_vpc_address_prefix" "locations" {
   for_each = { for k, zone in local.address_prefixes : k => zone }
@@ -117,7 +122,7 @@ resource "ibm_is_vpc_address_prefix" "locations" {
 # in same zone as the enterprise
 resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
   vpc                           = local.transit_vpc.id
-  name                          = "tgw-ingress-from-enterprise"
+  name                          = "tgw-ingress"
   route_direct_link_ingress     = false
   route_transit_gateway_ingress = true
   route_vpc_zone_ingress        = false
@@ -147,6 +152,7 @@ locals {
     }
   ]])
   routes = flatten(concat(local.enterprise_to_spokes, local.spokes_to_enterprise))
+
 }
 
 resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
@@ -160,6 +166,7 @@ resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
   next_hop      = module.transit_zones[each.value.zone_number].firewall_ip
 }
 
+/* TODO REMOVE todo
 #----------------------------------------------------------------------
 # NOTE: 
 resource "ibm_tg_connection_prefix_filter" "spoke_connetions_transit_side" {
@@ -172,14 +179,12 @@ resource "ibm_tg_connection_prefix_filter" "spoke_connetions_transit_side" {
   # before        = ibm_tg_connection_prefix_filter.spoke_connections_transit_side_default.filter_id
 }
 
-/*
-TODO default filter must be done in the console
-https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
-resource "ibm_tg_connection_prefix_filter" "spoke_connections_transit_side_default" {
-  action        = "deny"
-  prefix        = "0.0.0.0/0"
-}
-*/
+#TODO default filter must be done in the console
+#https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
+#resource "ibm_tg_connection_prefix_filter" "spoke_connections_transit_side_default" {
+#  action        = "deny"
+#  prefix        = "0.0.0.0/0"
+#}
 
 resource "ibm_tg_connection_prefix_filter" "enterprise_connection_transit_side" {
   gateway       = local.enterprise_link.tg_gateway.id
@@ -190,15 +195,14 @@ resource "ibm_tg_connection_prefix_filter" "enterprise_connection_transit_side" 
   # before        = ibm_tg_connection_prefix_filter.enterprise_link_default.filter_id
 }
 
-/*
-TODO default filter must be done in the console
-https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
+#TODO default filter must be done in the console
+#https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
 resource "ibm_tg_connection_prefix_filter" "enterprise_link_default" {
-  gateway       = ibm_tg_gateway.tgw.id
-  connection_id = ibm_tg_connection.enterprise_link[1].connection_id
-  action        = "deny"
-  prefix        = "0.0.0.0/0"
-}
+#  gateway       = ibm_tg_gateway.tgw.id
+#  connection_id = ibm_tg_connection.enterprise_link[1].connection_id
+#  action        = "deny"
+#  prefix        = "0.0.0.0/0"
+#}
 */
 
 output "zones" {

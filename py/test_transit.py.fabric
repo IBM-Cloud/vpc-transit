@@ -1,5 +1,4 @@
 import dump
-import spur
 import pytest
 from dataclasses import dataclass
 import shutil
@@ -7,12 +6,39 @@ import ipaddress
 import re
 import itertools
 
+#import spur
+from fabric import Connection
+from mock import patch
 
 def username():
     return "root"
 
-
 def curl_from_fip_to_ip_name(fip, ip):
+    shell = Connection(
+        fip,
+        user=username(),
+        connect_timeout=5.0,
+        #missing_host_key=spur.ssh.MissingHostKey.accept,
+    )
+    with shell:
+        try:
+            result = shell.run(
+                #" ".join(["curl", "--connect-timeout", "2", f"{ip}/name"]), allow_error=True
+                " ".join(["curl", "--connect-timeout", "2", f"{ip}/name"])
+            )
+            if result.return_code == 0:
+                return (True, result.stdout.strip(), result)
+            else:
+                return (
+                    False,
+                    f'output: {result.stdout} error: {result.stderr}',
+                    result,
+                )
+        except Exception as ex:
+            print(ex)
+            return (False, f"connection error fip:{fip}, ip:{ip}", None)
+
+def curl_from_fip_to_ip_name_ORIG(fip, ip):
     shell = spur.SshShell(
         hostname=fip,
         username=username(),
@@ -183,6 +209,21 @@ tf_dirs = dump.TerraformOutput()
 
 def command_on_fip(fip, command_as_list):
     execution_point = f"Open remote shell to fip {fip} username {username()} command {command_as_list}"
+
+    shell = spur.SshShell(
+        hostname=fip,
+        username=username(),
+        missing_host_key=spur.ssh.MissingHostKey.accept,
+    )
+    try:
+        with shell:
+            ret = run_remote_get_output(shell, command_as_list)
+    except Exception as err:
+        ret = ExecutionResult(exception=err, execution_point=execution_point)
+    return ret
+
+def command_on_fip_orig_todo(fip, command_as_list):
+    execution_point = f"Open remote shell to fip {fip} username {username()} command {command_as_list}"
     shell = spur.SshShell(
         hostname=fip,
         username=username(),
@@ -198,7 +239,7 @@ def command_on_fip(fip, command_as_list):
 
 def run_remote_get_output(shell, command_as_list):
     try:
-        result = shell.run(command_as_list, allow_error=True)
+        result = shell.run(command_as_list)
         ret = ExecutionResult(
             result.return_code,
             result.output.decode("utf-8"),
@@ -512,18 +553,21 @@ def collect_vpes_for_resource_testing():
     ]
 
 
+@patch('sys.stdin', new=open("/dev/null"))
 @pytest.mark.parametrize("curl", parameters_for_test_curl())
 def test_curl(curl):
     curl.test_me()
 
-@pytest.mark.parametrize("curl", parameters_for_test_curl_dns())
-def test_curl_dns(curl):
-    curl.test_me()
-
-@pytest.mark.parametrize("vpe", collect_vpes_for_dns_testing())
-def test_vpe_dns_resolution(vpe):
-    vpe.test_vpe_dns_resolution()
-
-@pytest.mark.parametrize("vpe", collect_vpes_for_resource_testing())
-def test_vpe(vpe):
-    vpe.test_vpe_resource()
+#@pytest.mark.parametrize("curl", parameters_for_test_curl_dns())
+#def test_curl_dns(curl):
+#    curl.test_me()
+#
+#@pytest.mark.parametrize("vpe", collect_vpes_for_dns_testing())
+#def test_vpe_dns_resolution(vpe):
+#    vpe.test_vpe_dns_resolution()
+#
+#
+#@pytest.mark.parametrize("vpe", collect_vpes_for_resource_testing())
+#def test_vpe(vpe):
+#    vpe.test_vpe_resource()
+#

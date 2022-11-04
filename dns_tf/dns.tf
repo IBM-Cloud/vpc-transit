@@ -28,17 +28,25 @@ data "terraform_remote_state" "spokes" {
     path = "../spokes_tf/terraform.tfstate"
   }
 }
+data "terraform_remote_state" "test_instances" {
+  backend = "local"
+
+  config = {
+    path = "../test_instances_tf/terraform.tfstate"
+  }
+}
 
 locals {
-  provider_region  = local.settings.region
-  enterprise_zones = data.terraform_remote_state.config.outputs.enterprise_zones
-  transit_zones    = data.terraform_remote_state.config.outputs.transit_zones
-  settings         = data.terraform_remote_state.config.outputs.settings
-  tags             = local.settings.tags
-  enterprise_vpc   = data.terraform_remote_state.enterprise.outputs.vpc
-  transit_vpc      = data.terraform_remote_state.transit.outputs.vpc
-  spokes           = data.terraform_remote_state.spokes.outputs
-  spokes_vpc       = local.spokes.vpcs
+  provider_region   = local.settings.region
+  enterprise_zones  = data.terraform_remote_state.config.outputs.enterprise_zones
+  transit_zones     = data.terraform_remote_state.config.outputs.transit_zones
+  settings          = data.terraform_remote_state.config.outputs.settings
+  tags              = local.settings.tags
+  enterprise_vpc    = data.terraform_remote_state.enterprise.outputs.vpc
+  transit_vpc       = data.terraform_remote_state.transit.outputs.vpc
+  spokes            = data.terraform_remote_state.spokes.outputs
+  test_instances_tf = data.terraform_remote_state.test_instances.outputs
+  spokes_vpc        = local.spokes.vpcs
 }
 
 locals {
@@ -46,6 +54,11 @@ locals {
     { enterprise = local.enterprise_vpc },
     { transit = local.transit_vpc },
     { for spoke_number, spoke_vpc in local.spokes_vpc : spoke_number => spoke_vpc }
+  )
+  instances = merge(
+    { enterprise = local.test_instances_tf.enterprise.workers },
+    { transit = local.test_instances_tf.transit.workers },
+    { for spoke_number, spoke_output in local.test_instances_tf.spokes : spoke_number => spoke_output.workers }
   )
 }
 
@@ -57,7 +70,7 @@ module "dns" {
   vpc = {
     crn       = each.value.crn
     subnets   = [for zone in each.value.zones : zone.subnets[local.settings.subnet_dns]]
-    instances = each.value.instances
+    instances = local.instances[each.key]
   }
   dns_zone_name = "${each.value.name}.com"
   tags          = local.tags

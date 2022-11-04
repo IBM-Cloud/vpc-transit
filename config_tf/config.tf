@@ -52,7 +52,7 @@ output "enterprise_zones" {
     zone             = zone_cidr.zone
     cidr             = zone_cidr.cidr
     subnets          = local.enterperise_zone_subnets[zone_number]
-    address_prefixes = local.enterperise_zone_subnets[zone_number]
+    address_prefixes = local.enterperise_zone_subnets[zone_number] # todo
   }]
 }
 
@@ -115,6 +115,7 @@ output "settings" {
       "basename:${var.basename}",
       replace("dir:${abspath(path.root)}", "/", "_"),
     ]
+    zones                        = local.zones
     region                       = var.region
     resource_group_name          = var.resource_group_name
     resource_group_id            = data.ibm_resource_group.group.id
