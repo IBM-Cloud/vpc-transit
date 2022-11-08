@@ -2,24 +2,19 @@ variable "ibmcloud_api_key" {}
 variable "ssh_key_name" {}
 variable "resource_group_name" {}
 variable "basename" {}
-variable "region" {
-  default = "us-south"
-}
-variable "spoke_count" {
-  default = 1
-}
-variable "spoke_subnets" {
-  # subnets in each spoke
-  default = 2
-}
+variable "region" {}
+variable "spoke_count" {}
 variable "make_redis" {
-  default = true
+  type    = bool
+  default = false
 }
 variable "make_postgresql" {
-  default = true
+  type    = bool
+  default = false
 }
 variable "make_cos" {
-  default = true
+  type    = bool
+  default = false
 }
 
 # enterprise link is vpn or tgw
@@ -33,9 +28,7 @@ variable "vpn_route_based" {
 }
 
 # number of zones for each vpn location (enterprise and transit)
-variable "zones" {
-  default = 2
-}
+variable "zones" {}
 
 variable "profile" {
   default = "cx2-2x4"

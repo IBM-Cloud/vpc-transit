@@ -49,6 +49,33 @@ def curl_from_fip_to_ip_name_test_false(fip, ip, expected_result_str):
 def curl_from_fip_to_ip_name_test_true(fip, ip, expected_result_str):
     assert True
 
+def ping_from_fip_to_ip_name(fip, ip):
+    shell = spur.SshShell(
+        hostname=fip,
+        username=username(),
+        missing_host_key=spur.ssh.MissingHostKey.accept,
+    )
+    with shell:
+        try:
+            result = shell.run(
+                ["ping", "-c", "2", f"{ip}"], allow_error=True
+            )
+            if result.return_code == 0:
+                return (True, result.output.decode("utf-8").strip(), result)
+            else:
+                return (
+                    False,
+                    f'output: {result.output.decode("utf-8")} error: {result.stderr_output.decode("utf-8")}',
+                    result,
+                )
+        except spur.ssh.ConnectionError:
+            return (False, f"ping error fip:{fip}, ip:{ip}", None)
+
+
+def ping_from_fip_to_ip_name_test(fip, ip, expected_result_str):
+    (success, return_str, result) = ping_from_fip_to_ip_name(fip, ip)
+    print(return_str)
+    assert success
 
 ####################
 class FromDict:
@@ -69,8 +96,8 @@ class Curl:
     destination: VPC
 
     def __str__(self):
-        src = f"{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
-        dst = f"{self.destination.name} {self.destination.primary_ipv4_address}"
+        src = f"l-{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
+        dst = f"r-{self.destination.name} {self.destination.primary_ipv4_address}"
         return f"{src:50} -> {dst}"
 
     def test_me(self):
@@ -80,6 +107,13 @@ class Curl:
             self.destination.name,
         )
         # curl_from_fip_to_ip_name_test_false(self.source.fip, self.destination.primary_ipv4_address, self.destination.name)
+
+    def ping_me(self):
+        ping_from_fip_to_ip_name_test(
+            self.source.fip,
+            self.destination.primary_ipv4_address,
+            self.destination.name,
+        )
 
 
 @dataclass
@@ -152,15 +186,6 @@ def add_vpc_instances_both_ways(ret, vpc_left, vpc_right):
                 for instance_left, instance_right in [(left, right), (right, left)]:
                     ret.append(Curl(VPC(**instance_left), VPC(**instance_right)))
 
-
-def add_curl_connectivity_tests_1(ret):
-    add_vpc_instances_both_ways(ret, tf_dirs.enterprise_tf.vpc, tf_dirs.transit_tf.vpc)
-    for vpc_spoke in tf_dirs.spokes_tf.vpcs:
-        add_vpc_instances_both_ways(ret, tf_dirs.enterprise_tf.vpc, vpc_spoke)
-        add_vpc_instances_both_ways(ret, tf_dirs.transit_tf.vpc, vpc_spoke)
-    # add spokes
-    for left, right in itertools.combinations(tf_dirs.spokes_tf.vpcs, 2):
-        add_vpc_instances_both_ways(ret, tf_dirs.enterprise_tf.vpc, vpc_spoke)
 
 def parameters_for_test_curl():
     curls = list()
@@ -451,9 +476,9 @@ class VPE_COS(VPE):
 vpe_type_to_class = {"cos": VPE_COS, "redis": VPE_REDIS, "postgresql": VPE_POSTGRESQL}
 
 
-def add_vpe_types(vpes, from_vpc, to_vpc, resources):
+def add_vpe_types(vpes, from_test_instances, to_vpc, resources):
     """add all of the vpe types.  Each VPE dervied type is a different test: cos, redis, ..."""
-    for _, instance_left in from_vpc["instances"].items():
+    for _, instance_left in from_test_instances.items():
         for resource in resources:
             vpes.append(
                 vpe_type_to_class[resource["type"]](
@@ -474,25 +499,32 @@ def collect_vpes():
     vpe_transit_tf = tf_dirs.vpe_transit_tf
     if hasattr(vpe_transit_tf, "resources"):
         transit_resources = tf_dirs.vpe_transit_tf.resources
+        instances_enterprise = tf_dirs.test_instances_tf.enterprise["workers"]
+        instances_transit = tf_dirs.test_instances_tf.transit["workers"]
         # transit -> transit
-        add_vpe_types( vpes, tf_dirs.transit_tf.vpc, tf_dirs.transit_tf.vpc, transit_resources)
+        add_vpe_types( vpes, instances_transit, tf_dirs.transit_tf.vpc, transit_resources)
         # enterprise -> transit
-        add_vpe_types( vpes, tf_dirs.enterprise_tf.vpc, tf_dirs.transit_tf.vpc, transit_resources)
-        for vpc_spoke in tf_dirs.spokes_tf.vpcs:
+        add_vpe_types( vpes, instances_enterprise, tf_dirs.transit_tf.vpc, transit_resources)
+        for spoke_number, vpc_spoke in tf_dirs.test_instances_tf.spokes.items():
+        # for vpc_spoke in tf_dirs.spokes_tf.vpcs:
             # spoke -> enterprise
-            add_vpe_types( vpes, vpc_spoke, tf_dirs.transit_tf.vpc, transit_resources)
+            # vpc_spoke = tf_dirs.spokes_tf.vpcs[spoke_number]:
+            add_vpe_types( vpes, vpc_spoke["workers"], tf_dirs.transit_tf.vpc, transit_resources)
 
         vpe_spokes_tf = tf_dirs.vpe_spokes_tf
         if hasattr(vpe_spokes_tf, "resources"):
             spoke_resources_all_spokes = vpe_spokes_tf.resources
-            for key, vpc_spoke in enumerate(tf_dirs.spokes_tf.vpcs):
-                spoke_resources = spoke_resources_all_spokes[str(key)]
+            for spoke_number_str, spoke_test_instances in tf_dirs.test_instances_tf.spokes.items():
+            # for key, vpc_spoke in enumerate(tf_dirs.spokes_tf.vpcs):
+                spoke_number = int(spoke_number_str)
+                vpc_spoke = tf_dirs.spokes_tf.vpcs[spoke_number]
+                spoke_resources = spoke_resources_all_spokes[spoke_number_str]
                 # spoke -> spoke
-                add_vpe_types(vpes, vpc_spoke, vpc_spoke, spoke_resources)
+                add_vpe_types(vpes, spoke_test_instances["workers"], vpc_spoke, spoke_resources)
                 # transit -> spoke
-                add_vpe_types( vpes, tf_dirs.transit_tf.vpc, vpc_spoke, spoke_resources)
+                add_vpe_types( vpes, instances_transit, vpc_spoke, spoke_resources)
                 # enterprise -> spoke
-                add_vpe_types( vpes, tf_dirs.enterprise_tf.vpc, vpc_spoke, spoke_resources,)
+                add_vpe_types( vpes, instances_enterprise, vpc_spoke, spoke_resources,)
     return vpes
 
 
@@ -512,18 +544,27 @@ def collect_vpes_for_resource_testing():
     ]
 
 
+@pytest.mark.ping
+@pytest.mark.parametrize("ping", parameters_for_test_curl())
+def test_ping(ping):
+    ping.ping_me()
+
+@pytest.mark.curl
 @pytest.mark.parametrize("curl", parameters_for_test_curl())
 def test_curl(curl):
     curl.test_me()
 
+@pytest.mark.dns
 @pytest.mark.parametrize("curl", parameters_for_test_curl_dns())
 def test_curl_dns(curl):
     curl.test_me()
 
+@pytest.mark.vpedns
 @pytest.mark.parametrize("vpe", collect_vpes_for_dns_testing())
 def test_vpe_dns_resolution(vpe):
     vpe.test_vpe_dns_resolution()
 
+@pytest.mark.vpe
 @pytest.mark.parametrize("vpe", collect_vpes_for_resource_testing())
 def test_vpe(vpe):
     vpe.test_vpe_resource()

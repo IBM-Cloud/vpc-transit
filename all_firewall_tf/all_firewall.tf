@@ -42,81 +42,75 @@ locals {
   transit  = data.terraform_remote_state.transit.outputs
   firewall = data.terraform_remote_state.firewall.outputs
 
-  # egress from all spokes to transit
-  spoke_egress_to_cloud = [for spoke_vpc in local.spokes.vpcs : [
-    for zone_number, transit in local.firewall.zones : {
-      vpc           = spoke_vpc.id                                            # spoke routing table
-      routing_table = spoke_vpc.routing_table                                 # spoke routing table
-      zone          = local.transit_zones[zone_number].zone                   # spoke and transit zone
-      name          = "egress-cloud-${local.transit_zones[zone_number].zone}" # spoke and transit zone
-      destination   = local.settings.cloud_cidr                               # all cloud cidr
+  # transit egress all cloud and all enterprise to firewall
+  transit_egress = [for firewall_zone_number, firewall_zone in local.firewall.zones : [
+    {
+      vpc           = local.transit.vpc.id            # spoke routing table
+      routing_table = local.transit.vpc.routing_table # spoke routing table
+      zone          = firewall_zone.zone              # transit zone
+      name          = "to-cloud-from-z${firewall_zone_number}"
+      destination   = local.settings.cloud_cidr
       action        = "deliver"
-      next_hop      = transit.firewall_ip
+      next_hop      = firewall_zone.firewall_ip
+    },
+    {
+      vpc           = local.transit.vpc.id            # spoke routing table
+      routing_table = local.transit.vpc.routing_table # spoke routing table
+      zone          = firewall_zone.zone              # transit zone
+      name          = "to-enterprise-from-z${firewall_zone_number}"
+      destination   = local.settings.enterprise_cidr
+      action        = "deliver"
+      next_hop      = firewall_zone.firewall_ip
     }
     ]
   ]
 
-  # In the egress zones provide more exact routes to the destination zones.
-  # stays in the same zone for routes spoke : cloud (spoke/transit) -> firewall in zone
-  spoke_to_spoke = [for spoke_number, spoke_vpc in local.spokes.vpcs : [
-    for egress_zone in range(local.settings.zones) : [
-      for dest_zone in range(0, egress_zone) : {
-        vpc           = spoke_vpc.id                                                        # spoke routing table
-        routing_table = spoke_vpc.routing_table                                             # spoke routing table
-        zone          = local.settings.cloud_zones_cidr[egress_zone].zone                   # spoke and transit zone
-        name          = "egress-dz${dest_zone}-iz-${local.transit_zones[egress_zone].zone}" # spoke and transit zone
-        destination   = local.settings.cloud_zones_cidr[dest_zone].cidr                     # all cloud cidr
-        action        = "deliver"
-        next_hop      = local.firewall.zones[dest_zone].firewall_ip
-      }
-    ]]
-  ]
-
-  # in transit, src zone to src zone for cloud zone
-  transit_egress_to_cloud = [for source_zone_number, source_zone in local.settings.cloud_zones_cidr : {
-    vpc           = local.transit.vpc.id            # spoke routing table
-    routing_table = local.transit.vpc.routing_table # spoke routing table
-    zone          = source_zone.zone                # transit zone
-    name          = "egress-cloud-from-${source_zone_number}"
-    destination   = local.settings.cloud_cidr
-    action        = "deliver"
-    next_hop      = local.firewall.zones[source_zone_number].firewall_ip
-    }
-  ]
-
-  # in transit to lower zone
-  transit_egress_to_lower_zone = [for source_zone_number in range(local.settings.zones) : [
-    for dest_zone_number in range(0, source_zone_number) : {
+  # transit egress to transit CIDRs do not go to firewall
+  transit_egress_self_delegate = [for source_zone_number, source_zone in local.settings.cloud_zones_cidr :
+    [for dest_zone_number, dest_zone in local.transit_zones : {
       vpc           = local.transit.vpc.id            # spoke routing table
       routing_table = local.transit.vpc.routing_table # spoke routing table
-      zone          = local.settings.cloud_zones_cidr[source_zone_number].zone
-      name          = "egress-zone-to-lower-${source_zone_number}-to-${dest_zone_number}"
-      destination   = local.settings.cloud_zones_cidr[dest_zone_number].cidr
-      action        = "deliver"
-      next_hop      = local.firewall.zones[dest_zone_number].firewall_ip
-    }
-  ]]
-
-  # transit to itsef should be handled with normal routing
-  transit_egress_to_transit = [for transit_zone_number, transit in local.firewall.zones : [
-    for destination_zone_number, destination_transit_zone in local.transit_zones : {
-      vpc           = local.transit.vpc.id                                       # spoke routing table
-      routing_table = local.transit.vpc.routing_table                            # spoke routing table
-      zone          = local.transit_zones[transit_zone_number].zone              # transit zone
-      name          = "except-${transit_zone_number}-${destination_zone_number}" # all cloud cidr
-      destination   = destination_transit_zone.cidr                              # all cloud cidr
+      zone          = source_zone.zone                # transit zone
+      name          = "egress-delegate-from-${source_zone_number}-to-${dest_zone_number}"
+      destination   = dest_zone.cidr
       action        = "delegate"
       next_hop      = "0.0.0.0"
+    }]
+  ]
+
+  # egress spoke -> cloud (spoke or transit) from all spokes to transit
+  spoke_egress_to_cloud = [for spoke_vpc in local.spokes.vpcs : [
+    for firewall_zone_number, firewall_zone in local.firewall.zones : {
+      vpc           = spoke_vpc.id                      # spoke routing table
+      routing_table = spoke_vpc.routing_table           # spoke routing table
+      zone          = firewall_zone.zone                # spoke and transit zone
+      name          = "to-cloud-z${firewall_zone.zone}" # spoke and transit zone
+      destination   = local.settings.cloud_cidr         # all cloud cidr
+      action        = "deliver"
+      next_hop      = firewall_zone.firewall_ip
     }
   ]]
 
-  # todo
-  #spoke_egress_routes = flatten(concat(local.spoke_egress_to_cloud, local.spoke_to_spoke, local.transit_egress_to_cloud, local.transit_egress_to_lower_zone, local.transit_egress_to_transit))
-  spoke_egress_routes = flatten(concat(local.spoke_egress_to_cloud, local.spoke_to_spoke, local.transit_egress_to_cloud, local.transit_egress_to_lower_zone))
+  # spoke egress to same spoke CIDRs do not go to firewall
+  spoke_egress_self_delegate = [for spoke_number, spoke_vpc in local.spokes.vpcs : [
+    [for source_zone_number, source_zone in local.spokes_zones[spoke_number] :
+      [for dest_zone_number, dest_zone in local.spokes_zones[spoke_number] : {
+        vpc           = spoke_vpc.id            # spoke routing table
+        routing_table = spoke_vpc.routing_table # spoke routing table
+        zone          = source_zone.zone        # transit zone
+        name          = "egress-delegate-from-z${source_zone_number}-to-z${dest_zone_number}"
+        destination   = dest_zone.cidr
+        action        = "delegate"
+        next_hop      = "0.0.0.0"
+      }]
+    ]
+  ]]
+
+  routes = flatten(concat(local.transit_egress, local.transit_egress_self_delegate, local.spoke_egress_to_cloud, local.spoke_egress_self_delegate))
 }
 
-resource "ibm_is_vpc_routing_table_route" "transit_policybased" {
-  for_each      = { for key, value in local.spoke_egress_routes : key => value }
+resource "ibm_is_vpc_routing_table_route" "spoke_transit" {
+  for_each      = { for key, value in local.routes : key => value }
   vpc           = each.value.vpc
   routing_table = each.value.routing_table
   name          = each.value.name
@@ -124,4 +118,8 @@ resource "ibm_is_vpc_routing_table_route" "transit_policybased" {
   destination   = each.value.destination
   action        = each.value.action
   next_hop      = each.value.next_hop
+}
+
+output "routes" {
+  value = ibm_is_vpc_routing_table_route.spoke_transit
 }

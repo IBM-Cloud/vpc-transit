@@ -40,7 +40,7 @@ locals {
   firewall        = data.terraform_remote_state.firewall.outputs
 
 
-  # spoke to transit stays in the same zone for routes spoke -> enterprise
+  # spoke -> enterprise traffic flows through the transit firewall in the same zone as the spoke initiator
   spoke_egress_to_enterprise = [for spoke_vpc in local.spokes.vpcs : [
     for zone_number, transit in local.firewall.zones : {
       vpc           = spoke_vpc                                    # spoke routing table
@@ -55,7 +55,7 @@ locals {
   spoke_egress_routes = flatten(local.spoke_egress_to_enterprise)
 }
 
-resource "ibm_is_vpc_routing_table_route" "transit_policybased" {
+resource "ibm_is_vpc_routing_table_route" "spoke_to_enterprise_via_same_zone_firewall" {
   for_each      = { for key, value in local.spoke_egress_routes : key => value }
   vpc           = each.value.vpc.id
   routing_table = each.value.routing_table
@@ -64,4 +64,8 @@ resource "ibm_is_vpc_routing_table_route" "transit_policybased" {
   destination   = each.value.destination
   action        = "deliver"
   next_hop      = each.value.next_hop
+}
+
+output "routes" {
+  value = ibm_is_vpc_routing_table_route.spoke_to_enterprise_via_same_zone_firewall
 }

@@ -1,6 +1,9 @@
 # firewall.tf to create the firewall and the other stuff required to route data through the firewall.
 # - firewall instances and possibly associated network load balancer
 # - vpc ingress route table and routes
+
+
+# todo remove
 # - vpc address filter to advertise routes through the transit vpc
 
 # todo
@@ -72,6 +75,7 @@ resource "ibm_is_security_group" "zone" {
   vpc            = local.transit_vpc.id
 }
 
+# todo tighten these up, see test instances
 resource "ibm_is_security_group_rule" "zone_inbound_all" {
   group     = ibm_is_security_group.zone.id
   direction = "inbound"
@@ -133,13 +137,15 @@ locals {
   # by either the egress route at the spoke (if provided) or by the matching address prefix in the transit vpc.
   # Either way the enterprise cidr in a zone are routed to the firewall in the transit VPC zone
   spokes_to_enterprise = [for zone_number, transit_zone in local.transit_zones : {
-    name        = "z${transit_zone.zone}-to-enterprise"
-    zone        = transit_zone.zone
-    cidr        = local.settings.enterprise_cidr
+    name = "z${transit_zone.zone}-to-enterprise"
+    zone = transit_zone.zone
+    # todo cidr        = local.settings.enterprise_cidr
+    cidr        = "0.0.0.0/0"
     zone_number = zone_number
     }
   ]
 
+  /*
   # From the enterprise to the spokes.  Avoid matching the transit VPC zones by creating a route for
   # each spoke zone.  The Transit Gateway will determine the transit VPC zone based on the spoke
   # address prefixes.  Select the firewall (zone_number) in the transit zone.
@@ -151,7 +157,11 @@ locals {
       zone_number = zone_number
     }
   ]])
-  routes = flatten(concat(local.enterprise_to_spokes, local.spokes_to_enterprise))
+  */
+
+  # todo
+  # routes = flatten(concat(local.enterprise_to_spokes, local.spokes_to_enterprise))
+  routes = flatten(local.spokes_to_enterprise)
 
 }
 
@@ -165,6 +175,31 @@ resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
   action        = "deliver"
   next_hop      = module.transit_zones[each.value.zone_number].firewall_ip
 }
+
+locals {
+  egress_to_firewall = [for zone_number, firewall in local.firewall_zones : {
+    zone        = firewall.zone # spoke and transit zone
+    name        = "egress-transit-${zone_number}"
+    destination = "0.0.0.0/0"
+    action      = "deliver"
+    next_hop    = firewall.firewall_ip
+    }
+  ]
+}
+
+/*
+resource "ibm_is_vpc_routing_table_route" "transit_egress" {
+  for_each      = { for key, value in local.egress_to_firewall : key => value }
+  vpc           = local.transit.vpc.id            # spoke routing table
+  routing_table = local.transit.vpc.routing_table # spoke routing table
+  name          = each.value.name
+  zone          = each.value.zone
+  destination   = each.value.destination
+  action        = each.value.action
+  next_hop      = each.value.next_hop
+}
+*/
+
 
 /* TODO REMOVE todo
 #----------------------------------------------------------------------
@@ -205,12 +240,16 @@ resource "ibm_tg_connection_prefix_filter" "enterprise_link_default" {
 #}
 */
 
-output "zones" {
-  value = { for zone_number, tz in module.transit_zones : zone_number => {
+locals {
+  firewall_zones = { for zone_number, tz in module.transit_zones : zone_number => {
     zone_number = zone_number
+    zone        = tz.zone
     firewall_ip = tz.firewall_ip
     firewalls = { for fw_key, fw in tz.firewalls : fw_key => {
       floating_ip_address  = fw.floating_ip_address
       primary_ipv4_address = fw.primary_ipv4_address
   } } } }
+}
+output "zones" {
+  value = local.firewall_zones
 }

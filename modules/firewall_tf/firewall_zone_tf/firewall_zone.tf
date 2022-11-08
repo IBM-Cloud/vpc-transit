@@ -76,6 +76,13 @@ resource "ibm_is_instance" "firewall" {
     sysctl -w net.ipv4.ip_forward=1
     echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf 
     #
+    cat > /etc/iptables.no << 'EOF'
+    *filter
+    :INPUT ACCEPT
+    :OUTPUT ACCEPT
+    :FORWARD DROP
+    COMMIT
+    EOF
     cat > /etc/iptables.all << 'EOF'
     *filter
     :INPUT ACCEPT
@@ -95,6 +102,9 @@ resource "ibm_is_floating_ip" "firewall" {
   target         = each.value.primary_network_interface[0].id
 }
 
+output "zone" {
+  value = var.subnet_firewall.zone
+}
 output "firewalls" {
   value = { for index, instance in ibm_is_instance.firewall : index => {
     floating_ip_address  = ibm_is_floating_ip.firewall[index].address

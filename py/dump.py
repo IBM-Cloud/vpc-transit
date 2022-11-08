@@ -18,7 +18,7 @@ class FromDict:
 class TerraformOutput:
   def __init__(self):
     # from apply.sh
-    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf spokes_egress_tf all_firewall_tf dns_tf vpe_transit_tf vpe_spokes_tf"
+    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf all_firewall_tf spokes_egress_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
     self.tf_dir_outputs = collections.OrderedDict()
     for tf_dir_name in all.split():
       try:
