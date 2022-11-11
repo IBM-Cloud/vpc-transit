@@ -45,7 +45,7 @@ module "vpe_resources" {
   subnets           = [for zone in each.value.zones : zone.subnets[local.settings.subnet_vpe]]
 }
 
-output "vpe_resources" {
+output "resources" {
   sensitive = true
   value     = module.vpe_resources
 }

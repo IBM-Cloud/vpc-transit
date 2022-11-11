@@ -106,8 +106,12 @@ output "zone" {
   value = var.subnet_firewall.zone
 }
 output "firewalls" {
-  value = { for index, instance in ibm_is_instance.firewall : index => {
-    floating_ip_address  = ibm_is_floating_ip.firewall[index].address
+  value = { for index, instance in ibm_is_instance.firewall : instance.name => {
+    id                   = instance.id
+    name                 = instance.name
+    subnet_name          = instance.name
+    fip                  = ibm_is_floating_ip.firewall[index].address
+    zone                 = instance.zone
     primary_ipv4_address = instance.primary_network_interface[0].primary_ip[0].address
   } }
 }

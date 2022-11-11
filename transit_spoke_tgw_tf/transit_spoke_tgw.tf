@@ -56,16 +56,18 @@ resource "ibm_tg_connection" "transit" {
   network_id   = local.transit_vpc.crn
 }
 
+locals {
+  transit_single = {
+    transit = ibm_tg_connection.transit
+  }
+}
 output "tg_gateway" {
   value = {
-    id = ibm_tg_gateway.tgw.id
-    spoke_connections = { for key, value in ibm_tg_connection.spokes : key => {
+    id   = ibm_tg_gateway.tgw.id
+    name = ibm_tg_gateway.tgw.name
+    connections = { for key, value in merge(ibm_tg_connection.spokes, local.transit_single) : key => {
       name          = value.name
       connection_id = value.connection_id
     } }
-    transit_connection = {
-      name          = ibm_tg_connection.transit.name
-      connection_id = ibm_tg_connection.transit.connection_id
-    }
   }
 }

@@ -28,8 +28,13 @@ resource "ibm_tg_connection" "enterprise_link" {
 }
 
 output "tg_gateway" {
-  value = ibm_tg_gateway.tgw
+  value = {
+    id   = ibm_tg_gateway.tgw.id
+    name = ibm_tg_gateway.tgw.name
+    connections = { for key, value in ibm_tg_connection.enterprise_link : key => {
+      name          = value.name
+      connection_id = value.connection_id
+    } }
+  }
 }
-output "tg_connections" {
-  value = ibm_tg_connection.enterprise_link
-}
+

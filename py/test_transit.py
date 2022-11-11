@@ -21,7 +21,7 @@ def curl_from_fip_to_ip_name(fip, ip):
     with shell:
         try:
             result = shell.run(
-                ["curl", "--connect-timeout", "2", f"{ip}/name"], allow_error=True
+                ["curl", "--max-time", "4", f"{ip}/name"], allow_error=True
             )
             if result.return_code == 0:
                 return (True, result.output.decode("utf-8").strip(), result)
@@ -515,10 +515,9 @@ def collect_vpes():
         if hasattr(vpe_spokes_tf, "resources"):
             spoke_resources_all_spokes = vpe_spokes_tf.resources
             for spoke_number_str, spoke_test_instances in tf_dirs.test_instances_tf.spokes.items():
-            # for key, vpc_spoke in enumerate(tf_dirs.spokes_tf.vpcs):
                 spoke_number = int(spoke_number_str)
                 vpc_spoke = tf_dirs.spokes_tf.vpcs[spoke_number]
-                spoke_resources = spoke_resources_all_spokes[spoke_number_str]
+                spoke_resources = spoke_resources_all_spokes[spoke_number_str]["resources"]
                 # spoke -> spoke
                 add_vpe_types(vpes, spoke_test_instances["workers"], vpc_spoke, spoke_resources)
                 # transit -> spoke

@@ -246,7 +246,11 @@ locals {
     zone        = tz.zone
     firewall_ip = tz.firewall_ip
     firewalls = { for fw_key, fw in tz.firewalls : fw_key => {
-      floating_ip_address  = fw.floating_ip_address
+      id                   = fw.id
+      name                 = fw.name
+      subnet_name          = fw.name
+      fip                  = fw.fip
+      zone                 = fw.zone
       primary_ipv4_address = fw.primary_ipv4_address
   } } } }
 }

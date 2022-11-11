@@ -18,7 +18,7 @@ class FromDict:
 class TerraformOutput:
   def __init__(self):
     # from apply.sh
-    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf all_firewall_tf spokes_egress_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
+    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
     self.tf_dir_outputs = collections.OrderedDict()
     for tf_dir_name in all.split():
       try:
@@ -56,25 +56,27 @@ def tf_output(dir):
     return tf
 
 
-def dump_vpc_instances(name, instances):
-    print(f"vpc - {name}")
+def dump_vpc_instances(name, instances, vpc):
+    print(f"vpc - {name} {vpc['id']}")
     for instance_name, instance in instances["workers"].items():
-      print(f'  {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]}')
+      print(f'  {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]} {instance["id"]}')
 
 def dump_test_instances(tf_dirs):
     if len(tf_dirs.test_instances_tf) == 0:
       return
-    dump_vpc_instances("enterprise", tf_dirs.test_instances_tf.enterprise)
-    dump_vpc_instances("transit", tf_dirs.test_instances_tf.transit)
+    dump_vpc_instances("enterprise", tf_dirs.test_instances_tf.enterprise, tf_dirs.enterprise_tf.vpc)
+    dump_vpc_instances("transit", tf_dirs.test_instances_tf.transit, tf_dirs.transit_tf.vpc)
     for spoke_number, spoke in tf_dirs.test_instances_tf.spokes.items():
-      dump_vpc_instances(f"spoke{spoke_number}", spoke)
+      dump_vpc_instances(f"spoke{spoke_number}", spoke, tf_dirs.spokes_tf.vpcs[int(spoke_number)])
 
 def dump_firewall(tf_dirs):
-    print("firewall in transit")
+    print("firewalls in transit")
     try:
       firewall_zones = tf_dirs.firewall_tf.zones
-      for zone in firewall_zones:
-        print(f"  {zone}")
+      for zone_number, zone in firewall_zones.items():
+        print(f"  firewall_ip: {zone['firewall_ip']}")
+        for instance_name, instance in zone['firewalls'].items():
+          print(f'    {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]} {instance["id"]}')
     except:
         print(f"  none")
 
@@ -105,6 +107,23 @@ def dump_zones(name, zones):
       for subnet in zone['subnets']:
         print(f'    {subnet["cidr"]}')
 
+def dump_tgw(tgw):
+    print(f' {tgw["name"]} {tgw["id"]}')
+    for connection_name, connection in tgw["connections"].items():
+      print(f'    {connection["name"]} {connection["connection_id"]}')
+
+def dump_tgws(tf_dirs):
+    print('tgws')
+    if len(tf_dirs.enterprise_link_tf) == 0:
+        print('  no enterprise_link_tf')
+    else:
+        dump_tgw(tf_dirs.enterprise_link_tf.tg_gateway)
+    if len(tf_dirs.transit_spoke_tgw_tf) == 0:
+        print('  no transit_spoke_tgw_tf')
+    else:
+        dump_tgw(tf_dirs.transit_spoke_tgw_tf.tg_gateway)
+  
+
 def dump_settings(settings):
   print("settings:")
   for setting in ["subnet_worker", "subnet_dns", "subnet_vpe", "subnet_fw"]:
@@ -119,28 +138,29 @@ def dump_config(tf_dirs):
     dump_zones("transit", transit_zones)
 
 def dump_normal(tf_dirs):
-    dump_config(tf_dirs)
-    dump_test_instances(tf_dirs)
-    dump_firewall(tf_dirs)
+    dump_tgws(tf_dirs)
     dump_vpes(tf_dirs)
+    dump_config(tf_dirs)
+    dump_firewall(tf_dirs)
+    dump_test_instances(tf_dirs)
 
 
-def dump_all(tf_dirs):
+def dump_each_layer(tf_dirs, details):
   table = rich.table.Table(title="tf dir outputs?")
   table.add_column("dir", justify="right", no_wrap=True)
   table.add_column("output?", justify="left", no_wrap=True)
   for tf_dir, outputs in tf_dirs.tf_dir_outputs.items():
-      print(f'{tf_dir}:')
-      for key, value in outputs.items():
-        print(f'{key}: ', end="")
-        print(outputs)
+      if details:
+        print(f'{tf_dir}:')
+        for key, value in outputs.items():
+          print(f'{key}: ', end="")
+          print(outputs)
       table.add_row(tf_dir, str(len(outputs) != 0))
   print(table)
 
 def dump():
     tf_dirs = TerraformOutput()
-    if flag_all():
-      dump_all(tf_dirs)
+    dump_each_layer(tf_dirs, flag_all())
     dump_normal(tf_dirs)
 
 app = typer.Typer()

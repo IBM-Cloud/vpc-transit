@@ -55,7 +55,7 @@ locals {
   dns_transit    = local.dns_tf.module_dns["transit"]
   dns_enterprise = local.dns_tf.module_dns["enterprise"]
   dns_spokes     = { for spoke_number, _ in local.spokes_vpc : spoke_number => local.dns_tf.module_dns[spoke_number] }
-  spoke_hostname = flatten([for spoke, vpe_resource in local.vpe_spokes_tf.vpe_resources : [for resource in vpe_resource.resources : {
+  spoke_hostname = flatten([for spoke, vpe_resource in local.vpe_spokes_tf.resources : [for resource in vpe_resource.resources : {
     spoke    = spoke
     hostname = resource.hostname
     }

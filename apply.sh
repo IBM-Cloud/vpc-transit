@@ -33,14 +33,14 @@ Examples:
 ./apply.sh transit_tf spokes_tf ;# terraform in each directory in order start at transit_tf and stop after spokes_tf is executed
 ./apply.sh -d ;# delete all resources
 ./apply.sh -d : spokes_tf ;# terraform delete beginning in the spokes_tf and work backwards towards the first directory
-./apply.sh -p;# show the order of apply but do not apply
+./apply.sh -p;# show the order of apply but do not apply, same as ./apply.sh -p : :
 ./apply.sh -d -p : spokes_tf ;# show the order of delete by to not delete
 ./apply.sh -d -p;# show the order of deletion
 EOF
 
 }
 
-all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf all_firewall_tf spokes_egress_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
+all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
 just_print=false
 apply=true
 
@@ -63,7 +63,15 @@ shift $((OPTIND-1))
 
 # handle [end] or [start end]
 case $# in
-  0) show_help; success=true; exit 0;;
+  0)
+    if [ $just_print = true ]; then
+      tf="$all"
+    else
+      show_help
+      success=true
+      exit 0
+    fi
+    ;;
   1) tf=$1;;
   2)
     start=$1
