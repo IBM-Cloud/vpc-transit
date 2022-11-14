@@ -542,6 +542,64 @@ def collect_vpes_for_resource_testing():
         for vpe in collect_vpes()
     ]
 
+####
+def curl_from_fip_to_lb_test(fip, ip):
+    (success, return_str, result) = curl_from_fip_to_ip_name(fip, ip)
+    print(return_str)
+    assert success
+
+@dataclass
+class LB:
+    hostname: str
+    private_ips: [str]
+    name: str
+
+@dataclass
+class LBTest:
+    source: VPC
+    destination: str # ip address of the LB
+    lb: LB
+
+    def __str__(self):
+        src = f"{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
+        dst = f"{self.lb.name} {self.destination} {self.lb.hostname}"
+        return f"{src:50} -> {dst}"
+
+    def test_me(self):
+        curl_from_fip_to_lb_test(
+            self.source.fip,
+            self.destination,
+        )
+
+def add_lb_types(tests, instances_list_of_list, lb):
+  for source_lists in instances_list_of_list:
+    for key, source in source_lists.items():
+      for private_ip in lb.private_ips:
+        tests.append(LBTest(VPC(**source), private_ip, lb))
+
+def collect_lb_tests():
+    """create load balancer test objects for each test_instance -> load_balancer access combination
+    The list of load balancers are in the test_lb_tf directory
+    sources are the enterprise, transit and spokes"""
+    ret = list()
+    instances_enterprise = tf_dirs.test_instances_tf.enterprise["workers"]
+    instances_transit = tf_dirs.test_instances_tf.transit["workers"]
+    instances_spokes = [spoke_test_instances["workers"] for spoke_test_instances in tf_dirs.test_instances_tf.spokes.values()]
+    instances_list_of_list = [instances_enterprise, instances_transit] + instances_spokes
+    lbs = tf_dirs.test_lbs_tf.lbs
+    for lbmodule_number, lbmodule in lbs.items():
+      lb_input = lbmodule["lb"]
+      lb = LB(hostname=lb_input["hostname"], private_ips=lb_input["private_ips"], name=lb_input["name"])
+      add_lb_types(ret, instances_list_of_list, lb)
+    return ret
+
+def collect_lbs_for_testing():
+    lbs = collect_lb_tests()
+    ret =  [
+        pytest.param(lb, id=str(lb)) for lb in lbs
+    ]
+    return ret
+
 
 @pytest.mark.ping
 @pytest.mark.parametrize("ping", parameters_for_test_curl())
@@ -567,3 +625,8 @@ def test_vpe_dns_resolution(vpe):
 @pytest.mark.parametrize("vpe", collect_vpes_for_resource_testing())
 def test_vpe(vpe):
     vpe.test_vpe_resource()
+
+@pytest.mark.lb
+@pytest.mark.parametrize("lb", collect_lbs_for_testing())
+def test_lb(lb):
+    lb.test_me()

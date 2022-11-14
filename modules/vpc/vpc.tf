@@ -132,9 +132,10 @@ data "ibm_is_vpc_default_routing_table" "location" {
 
 output "vpc" {
   value = {
-    id   = ibm_is_vpc.location.id
-    crn  = ibm_is_vpc.location.crn
-    name = ibm_is_vpc.location.name
+    id                     = ibm_is_vpc.location.id
+    crn                    = ibm_is_vpc.location.crn
+    name                   = ibm_is_vpc.location.name
+    default_security_group = ibm_is_vpc.location.default_security_group
     # todo routing table is the default VPC egress routing table, not the one created for firewall
     #routing_table = var.make_firewall_route_table ? ibm_is_vpc_routing_table.location[0].routing_table : data.ibm_is_vpc_default_routing_table.location.default_routing_table
     routing_table = data.ibm_is_vpc_default_routing_table.location.default_routing_table

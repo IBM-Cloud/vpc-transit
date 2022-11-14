@@ -49,3 +49,9 @@ variable "firewall_lb" {
 variable "number_of_firewalls_per_zone" {
   type = number
 }
+
+# test load balancers
+variable "test_lbs" {
+  type    = bool
+  default = false
+}

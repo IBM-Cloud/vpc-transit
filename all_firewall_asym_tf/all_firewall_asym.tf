@@ -58,36 +58,24 @@ locals {
     ]]
   ]
 
-  # in transit to lower zone
-  transit_to_transit_lower_zone = [for source_zone_number in range(local.settings.zones) : [
-    for dest_zone_number in range(0, source_zone_number) : {
-      vpc           = local.transit.vpc.id
-      routing_table = local.transit.vpc.routing_table
-      zone          = local.settings.cloud_zones_cidr[source_zone_number].zone # upper zone
-      name          = "egress-zone-to-lower-${source_zone_number}-to-${dest_zone_number}"
-      destination   = local.settings.cloud_zones_cidr[dest_zone_number].cidr # lower zone
-      action        = "deliver"
-      next_hop      = local.firewall.zones[dest_zone_number].firewall_ip
-    }
+  # Transit will allow the transit gateway to select the spoke zone based on the spoke destination address.
+  # The spoke must route traffic directly to the transit zone of the transit destination (the default).
+  # But, above cloud addresses for the spoke was adjusted to stay in the spoke's source zone
+  # more exact routes are required to override this for the transit.
+  spoke_to_transit_zone = [for spoke_number, spoke_vpc in local.spokes.vpcs : [
+    for spoke_zone_number, spoke_zone in spoke_vpc.zones : [
+      for transit_zone_number, transit in local.firewall.zones : {
+        vpc           = spoke_vpc.id
+        routing_table = spoke_vpc.routing_table
+        zone          = local.settings.cloud_zones_cidr[spoke_zone_number].zone
+        name          = "egress-zone-to-transit-s${spoke_number}-sz${spoke_zone_number}-dz${transit_zone_number}"
+        destination   = local.transit_zones[transit_zone_number].cidr
+        action        = "deliver"
+        next_hop      = transit.firewall_ip
+    }]
   ]]
 
-  # todo remove
-  # transit to itsef should be handled with normal routing
-  transit_egress_to_transit = [for transit_zone_number, transit in local.firewall.zones : [
-    for destination_zone_number, destination_transit_zone in local.transit_zones : {
-      vpc           = local.transit.vpc.id                                       # spoke routing table
-      routing_table = local.transit.vpc.routing_table                            # spoke routing table
-      zone          = local.transit_zones[transit_zone_number].zone              # transit zone
-      name          = "except-${transit_zone_number}-${destination_zone_number}" # all cloud cidr
-      destination   = destination_transit_zone.cidr                              # all cloud cidr
-      action        = "delegate"
-      next_hop      = "0.0.0.0"
-    }
-  ]]
-
-  # todo
-  #spoke_egress_routes = flatten(concat(local.spoke_egress_to_cloud, local.spoke_to_spoke, local.transit_egress_to_cloud, local.transit_egress_to_lower_zone, local.transit_egress_to_transit))
-  asymmetric_routing_fixes = flatten(concat(local.transit_to_transit_lower_zone, local.spoke_to_spoke_lower_zone))
+  asymmetric_routing_fixes = flatten(concat(local.spoke_to_spoke_lower_zone, local.spoke_to_transit_zone))
 }
 
 resource "ibm_is_vpc_routing_table_route" "transit_policybased" {

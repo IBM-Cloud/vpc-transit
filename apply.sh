@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-success=false
+success=unknown
 trap check_finish EXIT
 check_finish() {
   if [ $success = true ]; then
@@ -19,7 +19,7 @@ apply or destroy the resources in this example by steping into each of the terra
 -h - this message
 -p - just print the directories that would be visited do not do anything
 -d - destroy the resources in the reverse order of the apply.  Default is to apply in each directory.
-     Parameters[end] and [start end] are still with respect to ascending order.
+     Parameters[end] and [start end] are still with respect to ascending order.  Destroy will not exit on failure.
 
 dir - apply in one directory
 start | : - start directory or : to start at the beginning
@@ -40,7 +40,7 @@ EOF
 
 }
 
-all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
+all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
 just_print=false
 apply=true
 
@@ -89,7 +89,10 @@ case $# in
 esac
 
 # destroy in reverse order
-if [ $apply = false ]; then
+if [ $apply = true ]; then
+  opt=creating
+else
+  opt=desroying
   tf=$(echo "$tf" | awk '{ for (i=NF; i>1; i--) printf("%s ",$i); print $1; }')
 fi
 
@@ -104,7 +107,7 @@ fi
 for dir in $tf; do
   (
     cd $dir
-    echo '>>>' "creating resources with terraform in the $dir/ directory"
+    echo '>>>' "$opt resources with terraform in the $dir/ directory"
     # bug https://jiracloud.swg.usma.ibm.com:8443/browse/VPN-576
     case $dir in
       enterprise_link_tf) parallelism_n=1;;
@@ -118,9 +121,16 @@ for dir in $tf; do
       terraform apply -parallelism=$parallelism_n -auto-approve
     else
       echo '>>>' terraform destroy -parallelism=$parallelism_n -auto-approve
-      terraform destroy -parallelism=$parallelism_n -auto-approve
+      if ! terraform destroy -parallelism=$parallelism_n -auto-approve; then
+        success=false
+        echo '**************************************************'
+        echo destroy failed
+        echo '**************************************************'
+      fi
     fi
   )
 done
 
-success=true
+if [ $success == unknown ]; then
+  success=true
+fi
