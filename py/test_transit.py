@@ -534,6 +534,7 @@ def collect_vpes_for_dns_testing():
         pytest.param(vpe, marks=vpe.test_vpe_dns_resolution_mark(), id=str(vpe))
         for vpe in vpes
     ]
+    return vpes
 
 
 def collect_vpes_for_resource_testing():
