@@ -19,5 +19,5 @@ number_of_firewalls_per_zone = 1
 vpn             = false # vpn or tgw enterprise link to transit, false=tgw
 vpn_route_based = false # vpn route not applicable to this tutorial, must be false for now
 
-# test load balancers?
+# test load balancers?  5 load balancers are created in spoke0, nlb, alb and alb regional
 test_lbs = false

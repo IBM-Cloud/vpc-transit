@@ -586,7 +586,11 @@ def collect_lb_tests():
     instances_transit = tf_dirs.test_instances_tf.transit["workers"]
     instances_spokes = [spoke_test_instances["workers"] for spoke_test_instances in tf_dirs.test_instances_tf.spokes.values()]
     instances_list_of_list = [instances_enterprise, instances_transit] + instances_spokes
-    lbs = tf_dirs.test_lbs_tf.lbs
+    try:
+      # has test_lbs_tf been initialized?
+      lbs = tf_dirs.test_lbs_tf.lbs
+    except: 
+      return [ ]
     for lbmodule_number, lbmodule in lbs.items():
       lb_input = lbmodule["lb"]
       lb = LB(hostname=lb_input["hostname"], private_ips=lb_input["private_ips"], name=lb_input["name"])
