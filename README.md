@@ -1,3 +1,6 @@
+# DISCLAMER - WIP
+WORK IN PROGRESS - not up to date with tutorial.......
+
 # Transit VPC
 The Virtual Private Cloud, VPC, is used to securely manage network traffic in the cloud.  VPCs can also be used as a way to encapsulate functionality.  The VPCs can be connected to each other using Transit Gateway.
 
