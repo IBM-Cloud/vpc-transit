@@ -113,7 +113,7 @@ output "settings" {
     subnet_vpe       = local.subnet_vpe
     tags = [
       "basename:${var.basename}",
-      replace("dir:${abspath(path.root)}", "/", "_"),
+      lower(replace("dir:${abspath(path.root)}", "/", "_")),
     ]
     zones                        = local.zones
     region                       = var.region

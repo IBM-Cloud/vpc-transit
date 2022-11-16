@@ -185,62 +185,7 @@ locals {
     next_hop    = firewall.firewall_ip
     }
   ]
-}
 
-/*
-resource "ibm_is_vpc_routing_table_route" "transit_egress" {
-  for_each      = { for key, value in local.egress_to_firewall : key => value }
-  vpc           = local.transit.vpc.id            # spoke routing table
-  routing_table = local.transit.vpc.routing_table # spoke routing table
-  name          = each.value.name
-  zone          = each.value.zone
-  destination   = each.value.destination
-  action        = each.value.action
-  next_hop      = each.value.next_hop
-}
-*/
-
-
-/* TODO REMOVE todo
-#----------------------------------------------------------------------
-# NOTE: 
-resource "ibm_tg_connection_prefix_filter" "spoke_connetions_transit_side" {
-  for_each      = { for zone_number, zone in flatten(local.spokes_zones) : zone_number => zone }
-  gateway       = local.transit_spoke_tgw.tg_gateway.id
-  connection_id = local.transit_spoke_tgw.tg_gateway.transit_connection.connection_id
-  action        = "deny"
-  prefix        = each.value.cidr
-  le            = 32
-  # before        = ibm_tg_connection_prefix_filter.spoke_connections_transit_side_default.filter_id
-}
-
-#TODO default filter must be done in the console
-#https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
-#resource "ibm_tg_connection_prefix_filter" "spoke_connections_transit_side_default" {
-#  action        = "deny"
-#  prefix        = "0.0.0.0/0"
-#}
-
-resource "ibm_tg_connection_prefix_filter" "enterprise_connection_transit_side" {
-  gateway       = local.enterprise_link.tg_gateway.id
-  connection_id = local.enterprise_link.tg_connections.transit.connection_id
-  action        = "deny"
-  prefix        = local.settings.enterprise_cidr
-  le            = 32
-  # before        = ibm_tg_connection_prefix_filter.enterprise_link_default.filter_id
-}
-
-#TODO default filter must be done in the console
-#https://github.com/IBM-Cloud/terraform-provider-ibm/issues/4091
-resource "ibm_tg_connection_prefix_filter" "enterprise_link_default" {
-#  gateway       = ibm_tg_gateway.tgw.id
-#  connection_id = ibm_tg_connection.enterprise_link[1].connection_id
-#  action        = "deny"
-#  prefix        = "0.0.0.0/0"
-#}
-*/
-
-locals {
   firewall_zones = { for zone_number, tz in module.transit_zones : zone_number => {
     zone_number = zone_number
     zone        = tz.zone

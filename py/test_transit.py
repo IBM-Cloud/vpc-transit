@@ -41,14 +41,6 @@ def curl_from_fip_to_ip_name_test(fip, ip, expected_result_str):
     assert success
     assert return_str == expected_result_str
 
-
-def curl_from_fip_to_ip_name_test_false(fip, ip, expected_result_str):
-    assert False
-
-
-def curl_from_fip_to_ip_name_test_true(fip, ip, expected_result_str):
-    assert True
-
 def ping_from_fip_to_ip_name(fip, ip):
     shell = spur.SshShell(
         hostname=fip,
@@ -77,36 +69,43 @@ def ping_from_fip_to_ip_name_test(fip, ip, expected_result_str):
     print(return_str)
     assert success
 
-####################
-class FromDict:
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
+def basic_name(name: str):
+    "basic name takes a tvpc-spoke1-z1-s0 and removes the basename to return spoke1-z1-s0"
+    basename = tf_dirs.config_tf.settings["basename"]
+    return name[len(basename) + 1:]
 
-class VPC(FromDict):
-    pass
+@dataclass
+class VPC:
+  name: str
+  zones: [str]
 
+@dataclass
+class Instance:
+  fip: str
+  id: str
+  name: str
+  primary_ipv4_address: str
+  subnet_name: str
+  zone: str
 
-class Instance(FromDict):
-    pass
+@dataclass
+class ToFrom:
+    source: Instance
+    destination: Instance
+    def __str__(self):
+        src = f"l-{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
+        dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) r-{basic_name(self.destination.name)}"
+        return f"{src:50} -> {dst}"
 
 
 @dataclass
-class Curl:
-    source: VPC
-    destination: VPC
-
-    def __str__(self):
-        src = f"l-{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
-        dst = f"r-{self.destination.name} {self.destination.primary_ipv4_address}"
-        return f"{src:50} -> {dst}"
-
+class Curl(ToFrom):
     def test_me(self):
         curl_from_fip_to_ip_name_test(
             self.source.fip,
             self.destination.primary_ipv4_address,
             self.destination.name,
         )
-        # curl_from_fip_to_ip_name_test_false(self.source.fip, self.destination.primary_ipv4_address, self.destination.name)
 
     def ping_me(self):
         ping_from_fip_to_ip_name_test(
@@ -115,21 +114,12 @@ class Curl:
             self.destination.name,
         )
 
-
 @dataclass
-class DNS:
-    source: VPC
-    destination: VPC
-
+class DNS(ToFrom):
     def dns_name(self, instance):
         name = instance.name
         zone = f"{name[:-6]}.com"  # instance name is prefix_transit-z0-s0 for zone and subnet the zone is prefix_transit.com
         return f"{name}.{zone}"
-
-    def __str__(self):
-        src = f"{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
-        dst = f"{self.destination.name} {self.destination.primary_ipv4_address}"
-        return f"{src:50} -> {dst}"
 
     def test_me(self):
         curl_from_fip_to_ip_name_test(
@@ -140,52 +130,24 @@ class DNS:
 def left_right_combinations(ret, left_instances, right_instances):
     for _, instance_left in left_instances.items():
         for _, instance_right in right_instances.items():
-            ret.append((VPC(**instance_left), VPC(**instance_right)))
+            ret.append((Instance(**instance_left), Instance(**instance_right)))
 
+
+def all_instances():
+    workers = [*tf_dirs.test_instances_tf.enterprise["workers"].values(), *tf_dirs.test_instances_tf.transit["workers"].values()] + [worker for spoke in tf_dirs.test_instances_tf.spokes.values() for worker in spoke["workers"].values()]
+    return [Instance(**worker) for worker in workers]
 
 def instance_combinations():
-    ret = []
-    instances_enterprise = tf_dirs.test_instances_tf.enterprise["workers"]
-    instances_transit = tf_dirs.test_instances_tf.transit["workers"]
-    for left_right in [
-        (instances_enterprise, instances_enterprise),
-        (instances_transit, instances_transit),
-        (instances_enterprise, instances_transit),
-        (instances_transit, instances_enterprise),
-    ]:
-        left_right_combinations(ret, left_right[0], left_right[1])
-    for spoke_number, vpc_spoke in tf_dirs.test_instances_tf.spokes.items():
-        for instances in (instances_enterprise, instances_transit):
-            left_right_combinations(ret, instances, vpc_spoke["workers"])
-            left_right_combinations(ret, vpc_spoke["workers"], instances)
-        for other_vpc_spoke_number, other_vpc_spoke in tf_dirs.test_instances_tf.spokes.items():
-            left_right_combinations(
-                ret, vpc_spoke["workers"], other_vpc_spoke["workers"]
-            )
-    return ret
+    instances = all_instances()
+    return itertools.product(instances, instances)
 
 def add_curl_to_test_dns(curls):
-    ic = instance_combinations()
     for left, right in instance_combinations():
         curls.append(DNS(left, right))
 
 def add_curl_connectivity_tests(curls):
-    ic = instance_combinations()
     for left, right in instance_combinations():
         curls.append(Curl(left, right))
-
-def add_vpc_instances_both_ways(ret, vpc_left, vpc_right):
-    """Test left to right and right to left connectivity.  ssh using the vpc fip the curl the other private ip curl ip/name.
-    There is an app that will return the name of the instance"""
-    if vpc_left and vpc_right:
-        instances_left = [instance for key, instance in vpc_left["instances"].items()]
-        instances_right = [instance for key, instance in vpc_right["instances"].items()]
-        for left in instances_left:
-            for right in instances_right:
-                # both ways
-                for instance_left, instance_right in [(left, right), (right, left)]:
-                    ret.append(Curl(VPC(**instance_left), VPC(**instance_right)))
-
 
 def parameters_for_test_curl():
     curls = list()
@@ -397,8 +359,8 @@ class VPE:
         ]
 
     def __str__(self):
-        src = f"{self.source_instance.name} ({self.source_instance.fip})) {self.source_instance.primary_ipv4_address}"
-        dst =  f"{self.destination_vpc.name} ({str(self.destination_cidrs())}) {self.hostname()}"
+        src = f"{basic_name(self.source_instance.name)} ({self.source_instance.fip}) {self.source_instance.primary_ipv4_address}"
+        dst =  f"{basic_name(self.destination_vpc.name)} ({str(self.destination_cidrs())}) {self.hostname()}"
         return f"{self.vpe_type[5:]} {src} -> {dst}"
 
     def test_vpe_dns_resolution(self):
@@ -478,13 +440,13 @@ vpe_type_to_class = {"cos": VPE_COS, "redis": VPE_REDIS, "postgresql": VPE_POSTG
 
 def add_vpe_types(vpes, from_test_instances, to_vpc, resources):
     """add all of the vpe types.  Each VPE dervied type is a different test: cos, redis, ..."""
-    for _, instance_left in from_test_instances.items():
+    for instance_left in from_test_instances:
         for resource in resources:
             vpes.append(
                 vpe_type_to_class[resource["type"]](
                     "make_" + resource["type"],  # todo fix
-                    Instance(**instance_left),
-                    VPC(**to_vpc),
+                    instance_left,
+                    VPC(name=to_vpc["name"], zones=to_vpc["zones"]),
                     resource,
                 )
             )
@@ -496,45 +458,24 @@ def collect_vpes():
     destinations are on the transit vpc and spoke vpcs
     sources are the enterprise -> transit, enterprise -> spokes, transit -> spokes"""
     vpes = list()
+    instances = all_instances()
     vpe_transit_tf = tf_dirs.vpe_transit_tf
     if hasattr(vpe_transit_tf, "resources"):
-        transit_resources = tf_dirs.vpe_transit_tf.resources
-        instances_enterprise = tf_dirs.test_instances_tf.enterprise["workers"]
-        instances_transit = tf_dirs.test_instances_tf.transit["workers"]
-        # transit -> transit
-        add_vpe_types( vpes, instances_transit, tf_dirs.transit_tf.vpc, transit_resources)
-        # enterprise -> transit
-        add_vpe_types( vpes, instances_enterprise, tf_dirs.transit_tf.vpc, transit_resources)
-        for spoke_number, vpc_spoke in tf_dirs.test_instances_tf.spokes.items():
-        # for vpc_spoke in tf_dirs.spokes_tf.vpcs:
-            # spoke -> enterprise
-            # vpc_spoke = tf_dirs.spokes_tf.vpcs[spoke_number]:
-            add_vpe_types( vpes, vpc_spoke["workers"], tf_dirs.transit_tf.vpc, transit_resources)
-
+        add_vpe_types( vpes, instances, tf_dirs.transit_tf.vpc, tf_dirs.vpe_transit_tf.resources)
         vpe_spokes_tf = tf_dirs.vpe_spokes_tf
         if hasattr(vpe_spokes_tf, "resources"):
-            spoke_resources_all_spokes = vpe_spokes_tf.resources
-            for spoke_number_str, spoke_test_instances in tf_dirs.test_instances_tf.spokes.items():
+            for spoke_number_str, spoke_resources in vpe_spokes_tf.resources.items():
                 spoke_number = int(spoke_number_str)
                 vpc_spoke = tf_dirs.spokes_tf.vpcs[spoke_number]
-                spoke_resources = spoke_resources_all_spokes[spoke_number_str]["resources"]
-                # spoke -> spoke
-                add_vpe_types(vpes, spoke_test_instances["workers"], vpc_spoke, spoke_resources)
-                # transit -> spoke
-                add_vpe_types( vpes, instances_transit, vpc_spoke, spoke_resources)
-                # enterprise -> spoke
-                add_vpe_types( vpes, instances_enterprise, vpc_spoke, spoke_resources,)
+                add_vpe_types(vpes, instances, vpc_spoke, spoke_resources["resources"])
     return vpes
 
 
 def collect_vpes_for_dns_testing():
-    # return [pytest.param(vpe, id=str(vpe)) if vpe.can_test_vpe_dns_resolution() else pytest.param(vpe, id=str(vpe), marks=pytest.mark.skip) for vpe in collect_vpes()]
-    vpes = collect_vpes()
     return [
         pytest.param(vpe, marks=vpe.test_vpe_dns_resolution_mark(), id=str(vpe))
-        for vpe in vpes
+        for vpe in collect_vpes()
     ]
-    return vpes
 
 
 def collect_vpes_for_resource_testing():
@@ -557,13 +498,13 @@ class LB:
 
 @dataclass
 class LBTest:
-    source: VPC
+    source: Instance
     destination: str # ip address of the LB
     lb: LB
 
     def __str__(self):
-        src = f"{self.source.name} ({self.source.fip}) {self.source.primary_ipv4_address}"
-        dst = f"{self.lb.name} {self.destination} {self.lb.hostname}"
+        src = f"{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
+        dst = f"{basic_name(self.lb.name)} {self.destination} {self.lb.hostname}"
         return f"{src:50} -> {dst}"
 
     def test_me(self):
@@ -572,13 +513,13 @@ class LBTest:
             self.destination,
         )
 
-def add_lb_types(tests, instances_list_of_list, lb):
+def add_lb_types1(tests, instances_list_of_list, lb):
   for source_lists in instances_list_of_list:
     for key, source in source_lists.items():
       for private_ip in lb.private_ips:
-        tests.append(LBTest(VPC(**source), private_ip, lb))
+        tests.append(LBTest(Instance(**source), private_ip, lb))
 
-def collect_lb_tests():
+def collect_lb_tests1():
     """create load balancer test objects for each test_instance -> load_balancer access combination
     The list of load balancers are in the test_lb_tf directory
     sources are the enterprise, transit and spokes"""
@@ -597,6 +538,29 @@ def collect_lb_tests():
       lb = LB(hostname=lb_input["hostname"], private_ips=lb_input["private_ips"], name=lb_input["name"])
       add_lb_types(ret, instances_list_of_list, lb)
     return ret
+
+def add_lb_types(tests, instances, lb):
+  for instance in instances:
+    for private_ip in lb.private_ips:
+      tests.append(LBTest(instance, private_ip, lb))
+
+def collect_lb_tests():
+    """create load balancer test objects for each test_instance -> load_balancer access combination
+    The list of load balancers are in the test_lb_tf directory
+    sources are the enterprise, transit and spokes"""
+    ret = list()
+    instances = all_instances()
+    try:
+      # has test_lbs_tf been initialized?
+      lbs = tf_dirs.test_lbs_tf.lbs
+    except: 
+      return [ ]
+    for lbmodule_number, lbmodule in lbs.items():
+      lb_input = lbmodule["lb"]
+      lb = LB(hostname=lb_input["hostname"], private_ips=lb_input["private_ips"], name=lb_input["name"])
+      add_lb_types(ret, instances, lb)
+    return ret
+
 
 def collect_lbs_for_testing():
     lbs = collect_lb_tests()

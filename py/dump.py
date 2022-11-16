@@ -112,6 +112,29 @@ def dump_tgw(tgw):
     for connection_name, connection in tgw["connections"].items():
       print(f'    {connection["name"]} {connection["connection_id"]}')
 
+def dump_lb(lb_name, lb_obj):
+  print(f"  {lb_name}")
+  lb = lb_obj["lb"]
+  workers = lb_obj["workers"]
+  instances = lb_obj["instances"]
+  print(f"    name: {lb['name']}")
+  print(f"    hostname: {lb['hostname']}")
+  print(f"    private_ips:")
+  for private_ip in lb['private_ips']:
+    print(f"      {private_ip}")
+
+  print(f"    workers:")
+  for worker in workers.values():
+    print(f"      {worker['primary_ipv4_address']} {worker['fip']} {worker['name']}")
+
+def dump_lbs(tf_dirs):
+    print('lbs')
+    if len(tf_dirs.test_lbs_tf) == 0:
+        print('  no lbs')
+        return
+    for lb_name, lb in tf_dirs.test_lbs_tf.lbs.items():
+      dump_lb(lb_name, lb)
+  
 def dump_tgws(tf_dirs):
     print('tgws')
     if len(tf_dirs.enterprise_link_tf) == 0:
@@ -138,6 +161,7 @@ def dump_config(tf_dirs):
     dump_zones("transit", transit_zones)
 
 def dump_normal(tf_dirs):
+    dump_lbs(tf_dirs)
     dump_tgws(tf_dirs)
     dump_vpes(tf_dirs)
     dump_config(tf_dirs)

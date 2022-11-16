@@ -42,10 +42,6 @@ locals {
   ])
 }
 
-output "instances" {
-  value = local.instances
-}
-
 resource "ibm_is_instance" "workers" {
   for_each       = { for inum, instance in zipmap(range(length(local.instances)), local.instances) : inum => instance }
   tags           = each.value.tags
@@ -70,6 +66,24 @@ resource "ibm_is_floating_ip" "workers" {
   name           = each.value.name
   target         = each.value.primary_network_interface[0].id
 }
+
+output "workers" {
+  value = {
+    for worker_id, worker in ibm_is_instance.workers : worker_id => {
+      id                   = worker.id
+      name                 = worker.name
+      subnet_name          = worker.name
+      fip                  = ibm_is_floating_ip.workers[worker_id].address
+      primary_ipv4_address = worker.primary_network_interface[0].primary_ipv4_address
+      zone                 = worker.zone
+    }
+  }
+}
+
+output "instances" {
+  value = local.instances
+}
+
 
 resource "ibm_is_lb" "worker" {
   route_mode = false
