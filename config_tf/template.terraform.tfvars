@@ -9,7 +9,7 @@ region   = "us-south" # change as desired
 # monification of the rest are not required for the initial steps of the tutorial
 make_redis  = true
 spoke_count = 2 #set to 0 to remove spokes
-zones       = 2
+zones       = 3
 
 # firewall is optional.  If firewall is true firewall_lb is applied, if firewall_lb is true set the number of firewall instances
 firewall                     = true
