@@ -202,3 +202,8 @@ locals {
 output "zones" {
   value = local.firewall_zones
 }
+output "ingress_route_table" {
+  value = {
+    routing_table = ibm_is_vpc_routing_table.transit_tgw_ingress.routing_table
+  }
+}

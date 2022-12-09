@@ -1,4 +1,4 @@
-variable "ibmcloud_api_key" {}
+# linke enterprise to the transit vpc in the cloud
 
 data "terraform_remote_state" "config" {
   backend = "local"

@@ -1,4 +1,4 @@
-variable "ibmcloud_api_key" {}
+# test load balancers in the spokes
 
 data "terraform_remote_state" "config" {
   backend = "local"

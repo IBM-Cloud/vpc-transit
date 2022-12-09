@@ -11,13 +11,15 @@ make_redis  = true
 spoke_count = 2 #set to 0 to remove spokes
 zones       = 2
 
-# firewall is optional.  If true firewall NLB is optional, if lb true set the number of firewalls
+# firewall is optional.  If firewall is true firewall_lb is applied, if firewall_lb is true set the number of firewall instances
 firewall                     = true
 firewall_lb                  = false
 number_of_firewalls_per_zone = 1
 
-vpn             = false # vpn or tgw enterprise link to transit, false=tgw
-vpn_route_based = false # vpn route not applicable to this tutorial, must be false for now
+# if the firewall is true only enterprise traffic flows through the firewall.  Unless all_firewall is true.
+# when true spoke <-> spoke and spoke <-> transit will also pass through the firewall.
+# if following along with the tutorial keep this as false, there is a step in the tutorial where this is changed to true
+all_firewall = false
 
-# test load balancers?  5 load balancers are created in spoke0, nlb, alb and alb regional
+# test load balancers?  If true: 5 load balancers are created in spoke0, nlb, alb and alb regional
 test_lbs = false

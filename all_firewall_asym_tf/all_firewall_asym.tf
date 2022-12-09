@@ -1,7 +1,5 @@
 # spokes_egress for adding egress routes to the spokes
 
-variable "ibmcloud_api_key" {}
-
 data "terraform_remote_state" "config" {
   backend = "local"
 
@@ -79,7 +77,7 @@ locals {
     }]
   ]]
 
-  asymmetric_routing_fixes = flatten(concat(local.spoke_to_spoke_lower_zone, local.spoke_to_transit_zone))
+  asymmetric_routing_fixes = local.settings.all_firewall ? flatten(concat(local.spoke_to_spoke_lower_zone, local.spoke_to_transit_zone)) : []
 }
 
 resource "ibm_is_vpc_routing_table_route" "transit_policybased" {

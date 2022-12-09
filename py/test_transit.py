@@ -149,10 +149,24 @@ def add_curl_connectivity_tests(curls):
     for left, right in instance_combinations():
         curls.append(Curl(left, right))
 
-def parameters_for_test_curl():
+def zoneid(instance: Instance):
+  if instance.zone.find("-1") >= 0:
+    return 0
+  if instance.zone.find("-2") >= 0:
+    return 1
+  if instance.zone.find("-3") >= 0:
+    return 2
+  raise Exception("bad zone")
+
+def marks_find(first_mark, curl: Curl) -> [pytest.mark]:
+  lz = [pytest.mark.lz0, pytest.mark.lz1, pytest.mark.lz2][zoneid(curl.source)]
+  rz = [pytest.mark.rz0, pytest.mark.rz1, pytest.mark.rz2][zoneid(curl.destination)]
+  return [first_mark, lz, rz]
+
+def parameters_for_test_curl(first_mark):
     curls = list()
     add_curl_connectivity_tests(curls)
-    return [pytest.param(curl, id=str(curl)) for curl in curls]
+    return [pytest.param(curl, id=str(curl), marks=marks_find(first_mark, curl)) for curl in curls]
 
 def parameters_for_test_curl_dns():
     try:
@@ -570,13 +584,11 @@ def collect_lbs_for_testing():
     return ret
 
 
-@pytest.mark.ping
-@pytest.mark.parametrize("ping", parameters_for_test_curl())
+@pytest.mark.parametrize("ping", parameters_for_test_curl(pytest.mark.ping))
 def test_ping(ping):
     ping.ping_me()
 
-@pytest.mark.curl
-@pytest.mark.parametrize("curl", parameters_for_test_curl())
+@pytest.mark.parametrize("curl", parameters_for_test_curl(pytest.mark.curl))
 def test_curl(curl):
     curl.test_me()
 

@@ -1,7 +1,5 @@
 # spokes_egress for adding egress routes to the spokes
 
-variable "ibmcloud_api_key" {}
-
 data "terraform_remote_state" "config" {
   backend = "local"
 
@@ -23,6 +21,13 @@ data "terraform_remote_state" "transit" {
     path = "../transit_tf/terraform.tfstate"
   }
 }
+data "terraform_remote_state" "transit_ingress" {
+  backend = "local"
+
+  config = {
+    path = "../transit_ingress_tf/terraform.tfstate"
+  }
+}
 data "terraform_remote_state" "firewall" {
   backend = "local"
 
@@ -31,16 +36,18 @@ data "terraform_remote_state" "firewall" {
   }
 }
 
+
 locals {
-  provider_region = local.settings.region
   config          = data.terraform_remote_state.config.outputs
   settings        = local.config.settings
+  provider_region = local.settings.region
   transit_zones   = local.config.transit_zones
   spokes_zones    = local.config.spokes_zones
 
-  spokes   = data.terraform_remote_state.spokes.outputs
-  transit  = data.terraform_remote_state.transit.outputs
-  firewall = data.terraform_remote_state.firewall.outputs
+  spokes          = data.terraform_remote_state.spokes.outputs
+  transit         = data.terraform_remote_state.transit.outputs
+  firewall        = data.terraform_remote_state.firewall.outputs
+  transit_ingress = data.terraform_remote_state.transit_ingress.outputs
 
   # transit egress all cloud and all enterprise to firewall
   transit_egress = [for firewall_zone_number, firewall_zone in local.firewall.zones : [
@@ -106,7 +113,7 @@ locals {
     ]
   ]]
 
-  routes = flatten(concat(local.transit_egress, local.transit_egress_self_delegate, local.spoke_egress_to_cloud, local.spoke_egress_self_delegate))
+  routes = local.settings.all_firewall ? flatten(concat(local.transit_egress, local.transit_egress_self_delegate, local.spoke_egress_to_cloud, local.spoke_egress_self_delegate)) : []
 }
 
 resource "ibm_is_vpc_routing_table_route" "spoke_transit" {
@@ -122,4 +129,13 @@ resource "ibm_is_vpc_routing_table_route" "spoke_transit" {
 
 output "routes" {
   value = ibm_is_vpc_routing_table_route.spoke_transit
+  precondition {
+    condition     = !local.settings.all_firewall || length(local.transit_ingress.routes) == 0
+    error_message = <<-EOT
+    The transit_ingress_tf layer has been configured to delegate ingress traffic.
+    This is in conclict with routing all cross VPC traffic through the firewall-router.
+    The config_tf/terraform.tfvars file has a configuration for all_firewall that must be set
+    and the transit_ingress_tf layer must be applied again.
+    EOT
+  }
 }

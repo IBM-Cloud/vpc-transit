@@ -1,4 +1,3 @@
-variable "ibmcloud_api_key" {}
 variable "ssh_key_name" {}
 variable "resource_group_name" {}
 variable "basename" {}
@@ -19,7 +18,8 @@ variable "make_cos" {
 
 # enterprise link is vpn or tgw
 variable "vpn" {
-  type = bool
+  type    = bool
+  default = false
 }
 
 # route based vpn does not work with both: enterprise -> vpe and enterprise -> spoke
@@ -48,6 +48,11 @@ variable "firewall_lb" {
 }
 variable "number_of_firewalls_per_zone" {
   type = number
+}
+
+# spoke <-> spoke and transit <-> spoke traffic should also flow through the firewall
+variable "all_firewall" {
+  type = bool
 }
 
 # test load balancers

@@ -1,4 +1,4 @@
-variable "ibmcloud_api_key" {}
+# enterprise VPC
 
 data "terraform_remote_state" "config" {
   backend = "local"

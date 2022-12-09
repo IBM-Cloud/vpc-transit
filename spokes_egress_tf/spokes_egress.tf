@@ -1,7 +1,5 @@
 # spokes_egress for adding egress routes to the spokes
 
-variable "ibmcloud_api_key" {}
-
 data "terraform_remote_state" "config" {
   backend = "local"
 

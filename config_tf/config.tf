@@ -131,7 +131,7 @@ output "settings" {
     firewall                     = var.firewall
     firewall_lb                  = var.firewall_lb
     number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
-    all_firewall                 = true
+    all_firewall                 = var.all_firewall
     test_lbs                     = var.test_lbs
   }
 }

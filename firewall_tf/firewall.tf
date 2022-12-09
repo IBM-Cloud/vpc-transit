@@ -1,5 +1,4 @@
 # create firewall in the transit vpc.  Firewall is optional based on firewall variable.  Just a shim over the firewall module
-variable "ibmcloud_api_key" {}
 
 data "terraform_remote_state" "config" {
   backend = "local"
@@ -21,4 +20,7 @@ module "firewall" {
 
 output "zones" {
   value = length(module.firewall) == 1 ? module.firewall[0].zones : {}
+}
+output "ingress_route_table" {
+  value = length(module.firewall) == 1 ? module.firewall[0].ingress_route_table : {}
 }

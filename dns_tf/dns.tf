@@ -1,4 +1,4 @@
-variable "ibmcloud_api_key" {}
+# dns instance configuration
 
 data "terraform_remote_state" "config" {
   backend = "local"
