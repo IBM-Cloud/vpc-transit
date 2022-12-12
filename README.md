@@ -44,7 +44,7 @@ Each layer is implemented in a terraform directory with the suffix _tf.  The lay
 
 ```
 $ ./apply.sh -p
-directories: config_tf enterprise_tf transit_tf spokes_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf dns_tf vpe_transit_tf vpe_spokes_tf
+directories: config_tf enterprise_tf transit_tf spokes_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf dns_tf vpe_transit_tf vpe_spokes_tf
 >>> success
 ```
 
@@ -178,7 +178,7 @@ Ping traffic is L2 and does not establish a stateful L3 route.  These will be ro
 Optionally a Highly Available, HA, firewall can be created by using a Network Load Balancer in "route" mode.  This will distribute traffic over the pool members.  The config_tf/terraform.tfvars has the settings that control the firewall.
 
 - firewall - set to true to create a firewall
-- firewall_lb - set to true to create a load balancer in route mode
+- firewall_nlb  set to true to create a load balancer in route mode
 - number_of_firewalls_per_zone - specify a small integer indicating the number of load balancer pool members
 
 If you wish to configure this make these changes in the tfvars file and run ./apply.sh again.  This is a transparent chnge that does not effect the test results.

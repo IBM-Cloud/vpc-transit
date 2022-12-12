@@ -97,8 +97,8 @@ module "transit_zones" {
   profile                      = local.settings.profile
   ssh_key_ids                  = [local.settings.ssh_key.id]
   name                         = "${local.name}-z${each.key}-s${local.settings.subnet_fw}"
-  firewall_lb                  = local.settings.firewall_lb
-  number_of_firewalls_per_zone = local.settings.number_of_firewalls_per_zone
+  firewall_nlb                 = local.settings.firewall_nlb
+  number_of_firewalls_per_zone = local.settings.firewall_nlb ? local.settings.number_of_firewalls_per_zone : 1
   user_data                    = local.user_data
   security_groups              = [ibm_is_security_group.zone.id]
 }

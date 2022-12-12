@@ -129,7 +129,7 @@ output "settings" {
     make_postgresql              = var.make_postgresql
     make_cos                     = var.make_cos
     firewall                     = var.firewall
-    firewall_lb                  = var.firewall_lb
+    firewall_nlb                 = var.firewall_nlb
     number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
     all_firewall                 = var.all_firewall
     test_lbs                     = var.test_lbs

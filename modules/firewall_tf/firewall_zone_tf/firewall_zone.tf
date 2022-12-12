@@ -7,14 +7,14 @@ variable "resource_group_id" {}
 variable "ssh_key_ids" {}
 variable "profile" {}
 variable "image_id" {}
-variable "firewall_lb" {}
+variable "firewall_nlb" {}
 variable "number_of_firewalls_per_zone" {}
 variable "user_data" {}
 variable "name" {}
 variable "security_groups" {}
 
 resource "ibm_is_lb" "zone" {
-  count      = var.firewall_lb ? 1 : 0
+  count      = var.firewall_nlb ? 1 : 0
   route_mode = true
   name       = var.name
   subnets    = [var.subnet_firewall.id]
@@ -22,7 +22,7 @@ resource "ibm_is_lb" "zone" {
   type       = "private"
 }
 resource "ibm_is_lb_listener" "zone" {
-  count        = var.firewall_lb ? 1 : 0
+  count        = var.firewall_nlb ? 1 : 0
   lb           = ibm_is_lb.zone[0].id
   default_pool = ibm_is_lb_pool.zone[0].id
   protocol     = "tcp"
@@ -31,7 +31,7 @@ resource "ibm_is_lb_listener" "zone" {
 }
 
 resource "ibm_is_lb_pool" "zone" {
-  count                    = var.firewall_lb ? 1 : 0
+  count                    = var.firewall_nlb ? 1 : 0
   name                     = var.name
   lb                       = ibm_is_lb.zone[0].id
   algorithm                = "round_robin"
@@ -45,7 +45,7 @@ resource "ibm_is_lb_pool" "zone" {
   #health_monitor_port    = 80
 }
 resource "ibm_is_lb_pool_member" "zone" {
-  for_each  = var.firewall_lb ? ibm_is_instance.firewall : {}
+  for_each  = var.firewall_nlb ? ibm_is_instance.firewall : {}
   lb        = ibm_is_lb.zone[0].id
   pool      = element(split("/", ibm_is_lb_pool.zone[0].id), 1)
   port      = 80
@@ -118,9 +118,9 @@ output "firewalls" {
 
 # load balancer or if no load balancer the IP of of the firewall
 output "firewall_ip" {
-  value = var.firewall_lb ? ibm_is_lb.zone[0].private_ips[0] : ibm_is_instance.firewall[0].primary_network_interface[0].primary_ip[0].address
+  value = var.firewall_nlb ? ibm_is_lb.zone[0].private_ips[0] : ibm_is_instance.firewall[0].primary_network_interface[0].primary_ip[0].address
   precondition {
-    condition     = (var.number_of_firewalls_per_zone == 1) || (var.firewall_lb && var.number_of_firewalls_per_zone >= 1)
+    condition     = (var.number_of_firewalls_per_zone == 1) || (var.firewall_nlb && var.number_of_firewalls_per_zone >= 1)
     error_message = "There must be at least one firewall.  If there is no load balancer there must be exactly one firewall"
   }
 }

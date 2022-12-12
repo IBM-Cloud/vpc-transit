@@ -40,10 +40,11 @@ variable "image_name" {
 # firewall implementation
 # is there a firewall
 variable "firewall" {
-  type = bool
+  type    = bool
+  default = true
 }
 # is there a network load balancer for the firewall?
-variable "firewall_lb" {
+variable "firewall_nlb" {
   type = bool
 }
 variable "number_of_firewalls_per_zone" {
