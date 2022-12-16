@@ -1,8 +1,8 @@
 import collections
-import procin
 import typer
 import rich
 from rich import print
+import json
 console = rich.console.Console()
 
 
@@ -51,10 +51,9 @@ class TerraformOutput:
 #        return value
 
 def tf_output(dir):
-    c = procin.Command(json=True)
-    tf = c.run(["terraform", "output", f"-state={dir}/terraform.tfstate", "-json"])
-    return tf
-
+    with open(f"{dir}/terraform.tfstate") as f:
+      tfstate = json.load(f)
+      return tfstate["outputs"]
 
 def dump_vpc_instances(name, instances, vpc):
     print(f"vpc - {name} {vpc['id']}")
