@@ -80,7 +80,7 @@ source venv/bin/activate
 Run the tests:
 
 ```
-pytest -v
+TEST_DEBUG=1 pytest -v
 ```
 
 Ignoring the details the final line indicates that **all** tests are failing:
@@ -240,3 +240,16 @@ Notice that the tests are
 
 The enterperise can be connected to the cloud using VPN.  Remember that the enterprise VPC is simulating a remote data center. It is not recommended to use VPN to connect two IBM VPCs.  Spoiler alert we are a few steps away of simulating direct connect as an alternative to VPN. 
 
+# Miscellaneous
+
+You can optionally save some disk space by sharing terraform plugins across the layers using a [config-file](https://developer.hashicorp.com/terraform/cli/config/config-file).  On linux:
+
+$HOME/.terraformrc:
+
+   ```sh
+   plugin_cache_dir   = "$HOME/.terraform.d/plugin-cache"
+   disable_checkpoint = true
+   ```
+   {: codeblock}
+
+To avoid the installation of these tools you can use the [{{site.data.keyword.cloud-shell_short}}](https://{DomainName}/shell) from the {{site.data.keyword.cloud_notm}} console, but be aware that restarting the shell results in the loss of disk with associated terraform state files and environment.  It will be required to complete the tutorial and remove resources in one session.  Use the terraform plugin cache to avoid reaching the 500MB limit.

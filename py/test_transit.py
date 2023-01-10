@@ -6,11 +6,16 @@ import shutil
 import ipaddress
 import re
 import itertools
+import os
 
 
 def username():
     return "root"
 
+
+def verbose_output() -> bool:
+  env_var = "TEST_DEBUG"
+  return env_var in os.environ
 
 def curl_from_fip_to_ip_name(fip, ip):
     shell = spur.SshShell(
@@ -93,9 +98,14 @@ class ToFrom:
     source: Instance
     destination: Instance
     def __str__(self):
-        src = f"l-{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
-        dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) r-{basic_name(self.destination.name)}"
-        return f"{src:50} -> {dst}"
+        if verbose_output():
+          src = f"l-{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
+          dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) r-{basic_name(self.destination.name)}"
+          return f"{src:50} -> {dst}"
+        else:
+          src = f"l-{basic_name(self.source.name)}"
+          dst = f"r-{basic_name(self.destination.name)}"
+          return f"{src:15} -> {dst}"
 
 
 @dataclass

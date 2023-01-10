@@ -6,7 +6,7 @@ resource_group_name = "Default"                   # YOUR resource group
 basename = "tvpc"     # change if you wish, maybe your initials
 region   = "us-south" # change as desired
 
-# If following the tutorial do not initially modify the vaues below
+# If following the tutorial do not initially modify the values below
 make_redis  = true
 spoke_count = 2 #set to 0 to remove spokes
 zones       = 3
