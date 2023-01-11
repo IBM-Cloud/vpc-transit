@@ -21,12 +21,14 @@ locals {
   provider_region = var.region
   spoke_count     = var.spoke_count
   zones           = var.zones
-  # Each VPC is first broken into zones indexed 0..3
+  # Each VPC is first broken into zones indexed 0..2
   # the zone is the first break down.  Terraform will refer to them as zone 0, 1, 2 (1 and 2 optional)
-  # zone 0 - 10.0.0.0/16 us-south-1
-  # zone 1 - 10.1.0.0/16 us-south-2
-  # zone 2 - 10.2.0.0/16 us-south-3
+  # They cidr blocks are 1,2,3
+  # zone 0 - 10.1.0.0/16 us-south-1
+  # zone 1 - 10.2.0.0/16 us-south-2
+  # zone 2 - 10.3.0.0/16 us-south-3
 
+  # 4 subnets:
   subnet_worker = 0 # worker instances
   subnet_dns    = 1 # dns custom resolvers
   subnet_vpe    = 2 # vpc private endpoint gateways
@@ -62,8 +64,8 @@ locals {
 
   # list of ciders for each zone
   cloud_zones_cidr = [for zone_number in range(local.zones) : {
-    cidr = cidrsubnet(local.cloud_cidr, 8, zone_number)
-    zone = "${var.region}-${zone_number + 1}" # not zero based, all other zone number are zero based
+    cidr = cidrsubnet(local.cloud_cidr, 8, zone_number + 1)
+    zone = "${var.region}-${zone_number + 1}"
   }]
 
   # vpcs is used instead of spokes since it includes transit and all the spokes

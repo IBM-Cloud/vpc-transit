@@ -75,9 +75,9 @@ def ping_from_fip_to_ip_name_test(fip, ip, expected_result_str):
     assert success
 
 def basic_name(name: str):
-    "basic name takes a tvpc-spoke1-z1-s0 and removes the basename to return spoke1-z1-s0"
     basename = tf_dirs.config_tf.settings["basename"]
-    return name[len(basename) + 1:]
+    basename = name[len(basename) + 1:]
+    return basename.replace("-s0", "")
 
 @dataclass
 class VPC:
@@ -385,8 +385,12 @@ class VPE:
         ]
 
     def __str__(self):
-        src = f"{basic_name(self.source_instance.name)} ({self.source_instance.fip}) {self.source_instance.primary_ipv4_address}"
-        dst =  f"{basic_name(self.destination_vpc.name)} ({str(self.destination_cidrs())}) {self.hostname()}"
+        if verbose_output():
+          src = f"{basic_name(self.source_instance.name)} ({self.source_instance.fip}) {self.source_instance.primary_ipv4_address}"
+          dst =  f"{basic_name(self.destination_vpc.name)} ({str(self.destination_cidrs())}) {self.hostname()}"
+        else:
+          src = f"{basic_name(self.source_instance.name)}"
+          dst =  f"{basic_name(self.destination_vpc.name)} {self.hostname()}"
         return f"{self.vpe_type[5:]} {src} -> {dst}"
 
     def test_vpe_dns_resolution(self):
