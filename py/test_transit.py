@@ -169,8 +169,8 @@ def zoneid(instance: Instance):
   raise Exception("bad zone")
 
 def marks_find(first_mark, curl: Curl) -> [pytest.mark]:
-  lz = [pytest.mark.lz0, pytest.mark.lz1, pytest.mark.lz2][zoneid(curl.source)]
-  rz = [pytest.mark.rz0, pytest.mark.rz1, pytest.mark.rz2][zoneid(curl.destination)]
+  lz = [pytest.mark.lz1, pytest.mark.lz2, pytest.mark.lz3][zoneid(curl.source)]
+  rz = [pytest.mark.rz1, pytest.mark.rz2, pytest.mark.rz3][zoneid(curl.destination)]
   return [first_mark, lz, rz]
 
 def parameters_for_test_curl(first_mark):

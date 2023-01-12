@@ -6,15 +6,16 @@ resource_group_name = "Default"                   # YOUR resource group
 basename = "tvpc"     # change if you wish, maybe your initials
 region   = "us-south" # change as desired
 
+# In part 1 of the tutorial only enterprise <-> spoke traffic flows through the firewall-router.
+# In part 2 of the tutorial set all_firewall to true to also route
+# enterprise <-> transit, spoke <-> spoke and spoke <-> transit through the firewall.
+# After chaning this value you must apply all previous layers.
+all_firewall = false
+
 # If following the tutorial do not initially modify the values below
 make_redis  = true
 spoke_count = 2 #set to 0 to remove spokes
 zones       = 3
-
-# By default only enterprise traffic flows through the firewall-router.
-# Set all_firewall to true to also route spoke <-> spoke and spoke <-> transit through the firewall.
-# There is a step in the tutorial that requests the change of all_firewall from true to false
-all_firewall = false
 
 # firewall_nlb is set to true to create a NLB that distributes load to the actual firewall-routers
 # If firewall_nlb s true set the number of firewall instances
