@@ -12,12 +12,11 @@ import os
 def username():
     return "root"
 
-
 def verbose_output() -> bool:
   env_var = "TEST_DEBUG"
   return env_var in os.environ
 
-def curl_from_fip_to_ip_name(fip, ip):
+def curl_from_fip_to_ip_name(fip, ip_or_name):
     shell = spur.SshShell(
         hostname=fip,
         username=username(),
@@ -26,7 +25,7 @@ def curl_from_fip_to_ip_name(fip, ip):
     with shell:
         try:
             result = shell.run(
-                ["curl", "--max-time", "4", f"{ip}/name"], allow_error=True
+                ["curl", "--max-time", "4", f"{ip_or_name}/name"], allow_error=True
             )
             if result.return_code == 0:
                 return (True, result.output.decode("utf-8").strip(), result)
@@ -37,16 +36,16 @@ def curl_from_fip_to_ip_name(fip, ip):
                     result,
                 )
         except spur.ssh.ConnectionError:
-            return (False, f"connection error fip:{fip}, ip:{ip}", None)
+            return (False, f"connection error fip:{fip}, ip:{ip_or_name}", None)
 
 
-def curl_from_fip_to_ip_name_test(fip, ip, expected_result_str):
-    (success, return_str, result) = curl_from_fip_to_ip_name(fip, ip)
+def curl_from_fip_to_ip_name_test(fip, ip_or_name, expected_result_str):
+    (success, return_str, result) = curl_from_fip_to_ip_name(fip, ip_or_name)
     print(return_str)
     assert success
     assert return_str == expected_result_str
 
-def ping_from_fip_to_ip_name(fip, ip):
+def ping_from_fip_to_ip_name(fip, ip_or_name):
     shell = spur.SshShell(
         hostname=fip,
         username=username(),
@@ -55,7 +54,7 @@ def ping_from_fip_to_ip_name(fip, ip):
     with shell:
         try:
             result = shell.run(
-                ["ping", "-c", "2", f"{ip}"], allow_error=True
+                ["ping", "-c", "2", f"{ip_or_name}"], allow_error=True
             )
             if result.return_code == 0:
                 return (True, result.output.decode("utf-8").strip(), result)
@@ -66,26 +65,29 @@ def ping_from_fip_to_ip_name(fip, ip):
                     result,
                 )
         except spur.ssh.ConnectionError:
-            return (False, f"ping error fip:{fip}, ip:{ip}", None)
+            return (False, f"ping error fip:{fip}, ip:{ip_or_name}", None)
 
 
-def ping_from_fip_to_ip_name_test(fip, ip, expected_result_str):
-    (success, return_str, result) = ping_from_fip_to_ip_name(fip, ip)
+def ping_from_fip_to_ip_name_test(fip, ip_or_name, expected_result_str):
+    (success, return_str, result) = ping_from_fip_to_ip_name(fip, ip_or_name)
     print(return_str)
     assert success
 
 def basic_name(name: str):
+    """Strip out some repetitive strings: basename and -s0 at the end"""
     basename = tf_dirs.config_tf.settings["basename"]
     basename = name[len(basename) + 1:]
     return basename.replace("-s0", "")
 
 @dataclass
 class VPC:
+  """Virtual Private Cloud"""
   name: str
   zones: [str]
 
 @dataclass
 class Instance:
+  """VSI description"""
   fip: str
   id: str
   name: str
@@ -515,8 +517,8 @@ def collect_vpes_for_resource_testing():
     ]
 
 ####
-def curl_from_fip_to_lb_test(fip, ip):
-    (success, return_str, result) = curl_from_fip_to_ip_name(fip, ip)
+def curl_from_fip_to_lb_test(fip, ip_or_name):
+    (success, return_str, result) = curl_from_fip_to_ip_name(fip, ip_or_name)
     print(return_str)
     assert success
 

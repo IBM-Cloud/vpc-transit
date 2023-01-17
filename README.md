@@ -6,10 +6,85 @@ The Virtual Private Cloud, VPC, is used to securely manage network traffic in th
 
 A hub and spoke VPC model can serve a multitude of purposes.
 
-Enterpeise, hub and 2 spokes (one zone):
 
-![image](https://media.github.ibm.com/user/1667/files/a2fc2d00-4635-11ed-9705-e806ece818e4)
+![image](https://test.cloud.ibm.com/docs-content/v1/content/b1f2314e98e5628f204ce3619e53c3e87b196fda/solution-tutorials/images/vpc-transit-hidden/vpc-transit-overview.svg)
 
+# TLDR;
+Insure python virtual environment and terraform are available or docker as described in the prerequisite section below:
+
+```sh
+git clone https://github.com/IBM-Cloud/vpc-transit
+cd vpc-transit
+cp config_tf/template.terraform.tfvars config_tf/terraform.tfvars
+```
+
+Make required changes to terraform.tfvars
+
+```sh
+edit config_tf/terraform.tfvars
+```
+
+Apply the layers described in the tutorial.  First get a list of the layers:
+```sh
+apply -p
+```
+
+Then apply them sequentially.  For example install VPCs, test instances and connectivity between VPCs:
+
+```sh
+apply -p : enterprise_link_tf
+```
+
+# Prerequisites
+
+Terraform and a python environment are required.
+
+## Docker image
+A docker image can be created based on the [python image](https://hub.docker.com/_/python) and the [terraform linux Ubuntu/Debian install instructions](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+
+
+```sh
+cd docker
+docker build -t tools:latest .
+cd ..
+docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app python:3.11 bash
+```
+
+## Python prerequisite
+Python is used for testing.  You can skip the testing steps and trust the pass/fail results described in the tutorial.
+
+Use the docker image described above.
+
+Or use a local version of python.  It is best to use one of the multitude of different ways to install python.  For example:
+
+- Check version of python3 and verify it is 3.6.8 or later:
+```
+python --version
+```
+- If you have an old version of python use [pyenv](https://github.com/pyenv/pyenv) to install the latest
+- In the directory of the cloned repository create a fresh python virtual environment to persist the required libraries:
+```
+python3 -m venv venv --prompt transit_vpc
+```
+- Activate the virtual environment.  This will need to be done each time a new terminal shell is initialized.  Mac or Linux:
+```sh
+source venv/bin/activate
+```
+
+Windows:
+```sh
+source venv/Scripts/activate
+```
+
+- Upgrade to the latest version of pip.
+```sh
+pip install --upgrade pip
+```
+
+## Terraform
+Find instructions to download and install terraform in the [Getting started with tutorials](https://{DomainName}/docs/solution-tutorials?topic=solution-tutorials-tutorials) guide.
+
+# Backup
 Possible use cases for hub and spoke:
 - The hub can be the respository for shared microservices
 - The hub can be the repository for shared cloud resources, like databases, shared by the spokes over private endpoint gateways
