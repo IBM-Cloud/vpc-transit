@@ -1,4 +1,4 @@
-# DISCLAMER - WIP
+# DISCLAIMER - WIP
 WORK IN PROGRESS - not up to date with tutorial.......
 
 # Transit VPC
@@ -24,16 +24,30 @@ Make required changes to terraform.tfvars
 edit config_tf/terraform.tfvars
 ```
 
+Terraform will use your API key:
+```sh
+export IBMCLOUD_API_KEY=YourAPIKEy
+```
+
 Apply the layers described in the tutorial.  First get a list of the layers:
 ```sh
 apply -p
 ```
 
-Then apply them sequentially.  For example install VPCs, test instances and connectivity between VPCs:
+Apply the layers.  Follow along in the tutorial to understand what each layer is accomplishing.  Or just install them all:
 
 ```sh
-apply -p : enterprise_link_tf
+apply -p : :
 ```
+
+Then test the results.  It is expected that some tests will fail.  See the tutorial for details:
+
+```sh
+pytest -m curl
+```
+
+See more details on pytest below.
+
 
 # Prerequisites
 
@@ -42,26 +56,30 @@ Terraform and a python environment are required.
 ## Docker image
 A docker image can be created based on the [python image](https://hub.docker.com/_/python) and the [terraform linux Ubuntu/Debian install instructions](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
-
+- Build docker image:
 ```sh
 cd docker
 docker build -t tools:latest .
 cd ..
-docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app python:3.11 bash
+```
+
+- Run docker image to make a container.  All steps in the tutorial will run the `./apply.sh` command and the `pytest` command will be done at the bash prompt provided by this command:
+```
+docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
 ```
 
 ## Python prerequisite
 Python is used for testing.  You can skip the testing steps and trust the pass/fail results described in the tutorial.
 
-Use the docker image described above.
+You can use the docker image described above.
 
-Or use a local version of python.  It is best to use one of the multitude of different ways to install python.  For example:
+Or use a local version of python.
 
 - Check version of python3 and verify it is 3.6.8 or later:
 ```
 python --version
 ```
-- If you have an old version of python use [pyenv](https://github.com/pyenv/pyenv) to install the latest
+- If you have an old version of python you must install a newer version.  One way is to use [pyenv](https://github.com/pyenv/pyenv) to install the latest version of python.
 - In the directory of the cloned repository create a fresh python virtual environment to persist the required libraries:
 ```
 python3 -m venv venv --prompt transit_vpc
@@ -80,9 +98,90 @@ source venv/Scripts/activate
 ```sh
 pip install --upgrade pip
 ```
+- Install the required python libraries into the virtual environment:
+```sh
+pip install -r requirements.txt
+```
 
 ## Terraform
-Find instructions to download and install terraform in the [Getting started with tutorials](https://{DomainName}/docs/solution-tutorials?topic=solution-tutorials-tutorials) guide.
+Use the docker image described above.
+
+Or find instructions to download and install terraform in the [Getting started with tutorials](https://{DomainName}/docs/solution-tutorials?topic=solution-tutorials-tutorials) guide.
+
+
+# Pytest
+## Pytest marks and filtering
+Pytest is used for the test suite.  Each test will ssh to a VSI and then perform some kind of test: curl, ping, ... to a remote instance. The [pytest.ini](pytest.ini) file has marks for each class of tests:
+- ping: ping test
+- curl: curl test
+- dns: dns test
+- vpe: vpe test
+- vpedns: vpedns test
+- lb: loadbalancer test
+
+There is also a mark for each zone for the `left` which is the VSI that is the ssh target and the `right` which is the remote VSI or VPE that is being tested:
+- lz1: left zone1 test
+- lz2: left zone2 test
+- lz3: left zone3 test
+- rz1: right zone1 test
+- rz2: right zone2 test
+- rz3: right zone3 test
+
+The --co, collect only, can also be specified to see the tests that will be run.  Remove the --co flag to collect and then run the tests.  For example see the curl tests on zone 1 accessing only targets in zone 1:
+
+```sh
+pytest -m 'lz1 and rz1' --co
+```
+
+Try some other combinations:
+
+```sh
+pytest -m 'curl and lz1 and rz2' --co
+```
+
+You can also use the -k flag to filter the collection even more.  For example if you want to collect only the curl test from (enterprise zone 1) -> (spoke0 zone 1):
+
+```sh
+pytest -m 'curl' -k 'l-enterprise-z1 and r-spoke0-z1'  --co
+```
+
+## Pytest troubleshooting
+If you find an unexpected failure use the TEST_DEBUG=1 environment variable to get more verbose output:
+
+```sh
+TEST_DEBUG=1 pytest -m 'curl' -k 'l-enterprise-z1 and r-spoke0-z1'  --co
+```
+
+Here is an example:
+```
+root@ac4518168076:/usr/src/app# TEST_DEBUG=1 pytest -m 'curl' -k 'l-enterprise-z1 and r-spoke0-z1'  --co
+================================================================= test session starts ==================================================================
+platform linux -- Python 3.11.1, pytest-7.2.1, pluggy-1.0.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /usr/src/app, configfile: pytest.ini, testpaths: py
+collected 292 items / 291 deselected / 1 selected
+
+<Module py/test_transit.py>
+  <Function test_curl[l-enterprise-z1 (150.240.64.113) 192.168.0.4       -> 10.1.1.4 (52.116.134.171) r-spoke0-z1]>
+
+=================================================== 1/292 tests collected (291 deselected) in 0.30s ====================================================
+```
+Notes:
+- 150.240.64.113 - Floating IP address of the target VSI (left).  You can ssh to this VSI to reproduce the results by hand.
+- 192.168.0.4 - Local IP address of the target VSI. 
+- 52.116.134.171 - Floating IP address of the remote VSI.  Not used in the test.  You can also ssh to this VSI and run `tcpdump` to troubleshoot
+- 10.1.1.4 - Local IP address of the remote VSI.
+
+An heavily filtered example:
+
+```
+$ ssh root@150.240.64.113
+...
+root@x-enterprise-z1-s0:~# hostname -I
+192.168.0.4
+root@x-enterprise-z1-s0:~# curl 10.1.1.4
+...
+```
 
 # Backup
 Possible use cases for hub and spoke:
