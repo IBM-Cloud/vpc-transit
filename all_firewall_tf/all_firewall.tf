@@ -55,7 +55,7 @@ locals {
       vpc           = local.transit.vpc.id            # spoke routing table
       routing_table = local.transit.vpc.routing_table # spoke routing table
       zone          = firewall_zone.zone              # transit zone
-      name          = "to-cloud-from-z${firewall_zone_number}"
+      name          = "to-cloud-from-z${firewall_zone_number + 1}"
       destination   = local.settings.cloud_cidr
       action        = "deliver"
       next_hop      = firewall_zone.firewall_ip
@@ -64,7 +64,7 @@ locals {
       vpc           = local.transit.vpc.id            # spoke routing table
       routing_table = local.transit.vpc.routing_table # spoke routing table
       zone          = firewall_zone.zone              # transit zone
-      name          = "to-enterprise-from-z${firewall_zone_number}"
+      name          = "to-enterprise-from-z${firewall_zone_number + 1}"
       destination   = local.settings.enterprise_cidr
       action        = "deliver"
       next_hop      = firewall_zone.firewall_ip
@@ -78,7 +78,7 @@ locals {
       vpc           = local.transit.vpc.id            # spoke routing table
       routing_table = local.transit.vpc.routing_table # spoke routing table
       zone          = source_zone.zone                # transit zone
-      name          = "egress-delegate-from-${source_zone_number}-to-${dest_zone_number}"
+      name          = "egress-delegate-from-${source_zone_number + 1}-to-${dest_zone_number + 1}"
       destination   = dest_zone.cidr
       action        = "delegate"
       next_hop      = "0.0.0.0"

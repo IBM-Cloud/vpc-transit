@@ -69,9 +69,10 @@ locals {
 }
 
 
+# all in and out
 resource "ibm_is_security_group" "zone" {
   resource_group = local.settings.resource_group_id
-  name           = local.name
+  name           = "${local.name}-inall-outall"
   vpc            = local.transit_vpc.id
 }
 
@@ -82,6 +83,27 @@ resource "ibm_is_security_group_rule" "zone_inbound_all" {
 }
 resource "ibm_is_security_group_rule" "zone_outbound_all" {
   group     = ibm_is_security_group.zone.id
+  direction = "outbound"
+}
+
+# port 22 in and all out
+resource "ibm_is_security_group" "zone_22" {
+  resource_group = local.settings.resource_group_id
+  name           = "${local.name}-in22-outall"
+  vpc            = local.transit_vpc.id
+}
+
+# todo tighten these up, see test instances
+resource "ibm_is_security_group_rule" "zone_22_inbound_22" {
+  group     = ibm_is_security_group.zone_22.id
+  direction = "inbound"
+  udp {
+    port_min = 22
+    port_max = 22
+  }
+}
+resource "ibm_is_security_group_rule" "zone_22_outbound_all" {
+  group     = ibm_is_security_group.zone_22.id
   direction = "outbound"
 }
 
