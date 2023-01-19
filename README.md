@@ -118,9 +118,9 @@ Or find instructions to download and install terraform in the [Getting started w
 
 # Pytest
 ## Pytest marks and filtering
-The python test suite is in py/test_transit.py pytest.  There is some configuration in [pytest.ini](pytest.ini).
+The python test suite is in py/test_transit.py.  There is some configuration in [pytest.ini](pytest.ini).
 
-The default ssh environment is used to log into the test instances.  If you do not keep your ssh private key in the default location (~/.ssh/id_rsa for a mac or linux, ~/ssh/id_rsa for windows) the test suite will not work but it will still be useful to run the test suite with TEST_DEBUG=1 and --co (collect only) which will give you the information needed to try some of the tests out yourself, see [Pytest troubleshooting](#pytest-troubleshooting).
+The code expects a ssh private key in the default location (~/.ssh/id_rsa for a mac or linux, ~/ssh/id_rsa for windows).  If you can not provide that the test suite will not work but it will still be useful to run the test suite with TEST_DEBUG=1 and --co (collect only) which will give you the information needed to try some of the tests out yourself, see [Pytest troubleshooting](#pytest-troubleshooting).
 
 Each test will ssh to a VSI and then perform some kind of test: curl, ping, ... to a remote instance. The pytest.ini has marks for each class of tests:
 - ping: ping test
@@ -205,7 +205,7 @@ Notes:
 - 52.116.134.171 - Floating IP address of the remote VSI.  Not used in the test.  You can also ssh to this VSI and run `tcpdump` to troubleshoot
 - 10.1.1.4 - Local IP address of the remote VSI.
 
-A heavily filtered example.  Reproduce the test result in the first shell:
+A heavily filtered example.  Reproduce the test result in your own shell:
 
 ```
 $ ssh root@150.240.64.113
@@ -222,5 +222,3 @@ Listen to tcpdump in a second shell:
 $ ssh root@52.116.134.171
 
 ```
-
-
