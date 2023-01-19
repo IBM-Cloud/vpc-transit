@@ -66,9 +66,13 @@ docker build -t tools:latest .
 cd ..
 ```
 
-- Run docker image to make a container.  All steps in the tutorial will run the `./apply.sh` command and the `pytest` command will be done at the bash prompt provided by this command:
+- Run docker image to make a container.  All steps in the tutorial will run the `./apply.sh` command and the `pytest` command will be done at the bash prompt provided by this command on Mac, Linux:
 ```
 docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
+```
+Windows:
+```
+docker run -it --rm -v ~/ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
 ```
 
 ## Python prerequisite
@@ -116,7 +120,7 @@ Or find instructions to download and install terraform in the [Getting started w
 ## Pytest marks and filtering
 The python test suite is in py/test_transit.py pytest.  There is some configuration in [pytest.ini](pytest.ini).
 
-The default ssh environment is used to log into the test instances.  If you do not keep your ssh private key in the default location (~/.ssh/id_rsa for a mac or linux, ~/ssh/id_rsa for windows) the test suite will not work.
+The default ssh environment is used to log into the test instances.  If you do not keep your ssh private key in the default location (~/.ssh/id_rsa for a mac or linux, ~/ssh/id_rsa for windows) the test suite will not work but it will still be useful to run the test suite with TEST_DEBUG=1 and --co (collect only) which will give you the information needed to try some of the tests out yourself, see [Pytest troubleshooting](#pytest-troubleshooting).
 
 Each test will ssh to a VSI and then perform some kind of test: curl, ping, ... to a remote instance. The pytest.ini has marks for each class of tests:
 - ping: ping test
@@ -152,6 +156,28 @@ You can also use the -k flag to filter the collection even more.  For example if
 pytest -m 'curl' -k 'l-enterprise-z1 and r-spoke0-z1'  --co
 ```
 
+## test names
+
+Example test run:
+```sh
+root@ac4518168076:/usr/src/app# pytest -m "curl and lz1 and rz1"
+================================= test session starts ==================================
+platform linux -- Python 3.11.1, pytest-7.2.1, pluggy-1.0.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /usr/src/app, configfile: pytest.ini, testpaths: py
+collected 292 items / 276 deselected / 16 selected
+   
+py/test_transit.py::test_curl[l-enterprise-z1 -> r-enterprise-z1] PASSED         [  6%]
+...
+```
+
+The **r-** and **l-** stand for **r**ight and **l**eft.  The middle part of the name identifies enterprise, transit, spoke0, spoke1, ... The z1, z2, ... identify the zone. The test will ssh to the left instance.  On the left instance the connectivity to the right instance is attempted.  The **test_curl** performs a curl connectivity on the left instance to the right instance.
+
+The test `test_curl[l-enterprise-z1 -> r-transit-z1]`:
+1. ssh to a test instance in enterprise zone 1
+2. execute a curl to transit zone 1
+3. assert the return string contains the ID of transit zone 1 to mark pass or fail
+
 ## Pytest troubleshooting
 If you find an unexpected failure use the TEST_DEBUG=1 environment variable to get more verbose output:
 
@@ -186,7 +212,7 @@ $ ssh root@150.240.64.113
 ...
 root@x-enterprise-z1-s0:~# hostname -I
 192.168.0.4
-root@x-enterprise-z1-s0:~# curl 10.1.1.4
+root@x-enterprise-z1-s0:~# curl 10.1.1.4/name
 ...
 ```
 
