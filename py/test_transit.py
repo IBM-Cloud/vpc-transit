@@ -256,7 +256,7 @@ re_host_command_has_address = re.compile(r"(?s).*? has address ([0-9\.]+)")
 
 def fip_resolves_hostname(fip, dns_name):
     """ssh to fip and resolve the hostname"""
-    ret = command_on_fip(fip, ["systemd-resolve", "--flush-caches"])
+    ret = command_on_fip(fip, ["resolvectl", "flush-caches"])
     ret.assert_for_test()
     ret = command_on_fip(fip, ["host", dns_name])
     ret.assert_for_test()
