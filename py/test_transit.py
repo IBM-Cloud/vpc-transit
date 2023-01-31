@@ -344,11 +344,7 @@ def shell_command_on_fip(fip, command):
     command_as_list = ["sh", "-c", f"chmod 755 {remote_file_name}; {remote_file_name}"]
     execution_point = f"Open remote shell to fip {fip} username {username()} command {command_as_list}"
     print(execution_point)
-    shell = spur.SshShell(
-        hostname=fip,
-        username=username(),
-        missing_host_key=spur.ssh.MissingHostKey.accept,
-    )
+    shell = ssh_shell(fip)
     try:
         with shell.open(remote_file_name, "w") as remote_file:
             remote_file.write(command)
