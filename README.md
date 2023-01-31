@@ -72,12 +72,12 @@ cd ..
 ```
 
 Run the image just built interactively:
-```
-docker run -it --rm -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
 ```sh
+docker run -it --rm -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
+```
 
 Looks like this
-```
+```sh
 root@12c27abecdbc:/usr/src/app# ./apply.sh -h
 ./apply.sh [-?] [-h] [-d] [-p] (start | : ) | (end | : )
 apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
