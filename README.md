@@ -76,7 +76,7 @@ Run the image just built interactively:
 docker run -it --rm -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
 ```
 
-Looks like this
+Should look like this:
 ```sh
 root@12c27abecdbc:/usr/src/app# ./apply.sh -h
 ./apply.sh [-?] [-h] [-d] [-p] (start | : ) | (end | : )
