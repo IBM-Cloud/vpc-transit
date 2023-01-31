@@ -1,6 +1,6 @@
 import collections
-import typer
 import rich
+import typer
 from rich import print
 import json
 console = rich.console.Console()

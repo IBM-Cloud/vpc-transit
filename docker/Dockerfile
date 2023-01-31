@@ -1,5 +1,7 @@
 FROM python:3
-RUN apt-get update \
+COPY requirements.txt /tmp
+RUN  pip install -r /tmp/requirements.txt \
+  && apt-get update \
   && apt-get install -y \
   && apt-get update \
   && apt-get install -y gnupg software-properties-common \

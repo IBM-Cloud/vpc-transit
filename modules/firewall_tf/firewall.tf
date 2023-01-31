@@ -117,7 +117,7 @@ module "transit_zones" {
   resource_group_id            = local.settings.resource_group_id
   image_id                     = local.settings.image_id
   profile                      = local.settings.profile
-  ssh_key_ids                  = [local.settings.ssh_key.id]
+  ssh_key_ids                  = local.settings.ssh_key_ids
   name                         = "${local.name}-z${tonumber(each.key) + 1}-s${local.settings.subnet_fw}"
   firewall_nlb                 = local.settings.firewall_nlb
   number_of_firewalls_per_zone = local.settings.firewall_nlb ? local.settings.number_of_firewalls_per_zone : 1

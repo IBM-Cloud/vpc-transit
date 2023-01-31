@@ -16,12 +16,16 @@ def verbose_output() -> bool:
   env_var = "TEST_DEBUG"
   return env_var in os.environ
 
-def curl_from_fip_to_ip_name(fip, ip_or_name):
-    shell = spur.SshShell(
+def ssh_shell(fip):
+    return spur.SshShell(
         hostname=fip,
         username=username(),
         missing_host_key=spur.ssh.MissingHostKey.accept,
+        private_key_file="./config_tf/id_rsa"
     )
+
+def curl_from_fip_to_ip_name(fip, ip_or_name):
+    shell = ssh_shell(fip)
     with shell:
         try:
             result = shell.run(
@@ -46,11 +50,7 @@ def curl_from_fip_to_ip_name_test(fip, ip_or_name, expected_result_str):
     assert return_str == expected_result_str
 
 def ping_from_fip_to_ip_name(fip, ip_or_name):
-    shell = spur.SshShell(
-        hostname=fip,
-        username=username(),
-        missing_host_key=spur.ssh.MissingHostKey.accept,
-    )
+    shell = ssh_shell(fip)
     with shell:
         try:
             result = shell.run(
@@ -196,11 +196,7 @@ tf_dirs = dump.TerraformOutput()
 
 def command_on_fip(fip, command_as_list):
     execution_point = f"Open remote shell to fip {fip} username {username()} command {command_as_list}"
-    shell = spur.SshShell(
-        hostname=fip,
-        username=username(),
-        missing_host_key=spur.ssh.MissingHostKey.accept,
-    )
+    shell = ssh_shell(fip)
     try:
         with shell:
             ret = run_remote_get_output(shell, command_as_list)

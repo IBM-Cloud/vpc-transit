@@ -10,7 +10,7 @@ locals {
   tags                         = var.settings.tags
   resource_group_id            = var.settings.resource_group_id
   security_group_inbound_cidrs = [var.settings.cloud_cidr, var.settings.enterprise_cidr]
-  ssh_key_ids                  = [var.settings.ssh_key.id]
+  ssh_key_ids                  = var.settings.ssh_key_ids
   image_id                     = var.settings.image_id
   profile                      = var.settings.profile
 

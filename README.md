@@ -49,9 +49,12 @@ pytest -m curl
 
 See more details on pytest below.
 
+# Note about ssh keys
+An additional temporary IBM Cloud VPC ssh key will be created in the config_tf layer and the private key contents are in config_tf/id_rsa.  The pytest framework will use this ssh key to ssh to the instances.  The VPC ssh key will be destroyed when the resources are destroyed.
+
+Each VPC Virtual Service Instance will have two VPC ssh keys: temporary key and the key provided in config_tf/terraform.tfvars.  This allows the pytest to run tests without additional configuration and for you to poke around in any of the instances by simply using your normal ssh procedures.
 
 # Prerequisites
-
 Terraform and a python environment are required on your desktop development environment.
 
 In the IBM Cloud the firewall-router instance will [allow_ip_spoofing](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about).  You must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check).  You need an SSH key to connect to the virtual servers. If you don't have an SSH key, see [the instructions](/docs/vpc?topic=vpc-ssh-keys) for creating a key for VPC. 
@@ -62,18 +65,29 @@ A docker image can be created based on the [python image](https://hub.docker.com
 - Build docker image:
 ```sh
 cd docker
+cp ../requirements.txt .
 docker build -t tools:latest .
+rm requirements.txt
 cd ..
 ```
 
-- Run docker image to make a container.  All steps in the tutorial will run the `./apply.sh` command and the `pytest` command will be done at the bash prompt provided by this command on Mac, Linux:
+Run the image just built interactively:
 ```
-docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
+docker run -it --rm -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
+```sh
+
+Looks like this
 ```
-Windows:
+root@12c27abecdbc:/usr/src/app# ./apply.sh -h
+./apply.sh [-?] [-h] [-d] [-p] (start | : ) | (end | : )
+apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
+-? - this message
+-h - this message
+-p - just print the directories that would be visited do not do anything
+...
 ```
-docker run -it --rm -v ~/ssh:/root/.ssh -v `pwd`:/usr/src/app  -w /usr/src/app tools bash
-```
+
+The steps in the tutorial - `./apply.sh` and `pytest` - can now be executed in the running docker container.
 
 ## Python prerequisite
 Python is used for testing.  You can skip the testing steps and trust the pass/fail results described in the tutorial.
@@ -120,7 +134,7 @@ Or find instructions to download and install terraform in the [Getting started w
 ## Pytest marks and filtering
 The python test suite is in py/test_transit.py.  There is some configuration in [pytest.ini](pytest.ini).
 
-The code expects a ssh private key in the default location (~/.ssh/id_rsa for a mac or linux, ~/ssh/id_rsa for windows).  If you can not provide that the test suite will not work but it will still be useful to run the test suite with TEST_DEBUG=1 and --co (collect only) which will give you the information needed to try some of the tests out yourself, see [Pytest troubleshooting](#pytest-troubleshooting).
+The code expects a ssh private key in `./config_tf/id_rsa` ~/.ssh/id_rsa.  This was created by `./apply.sh config_tf`.
 
 Each test will ssh to a VSI and then perform some kind of test: curl, ping, ... to a remote instance. The pytest.ini has marks for each class of tests:
 - ping: ping test
@@ -179,6 +193,7 @@ The test `test_curl[l-enterprise-z1 -> r-transit-z1]`:
 3. assert the return string contains the ID of transit zone 1 to mark pass or fail
 
 ## Pytest troubleshooting
+### Show IP addresses
 If you find an unexpected failure use the TEST_DEBUG=1 environment variable to get more verbose output:
 
 ```sh
@@ -215,10 +230,13 @@ root@x-enterprise-z1-s0:~# hostname -I
 root@x-enterprise-z1-s0:~# curl 10.1.1.4/name
 ...
 ```
+### tcpdump
 
-Listen to tcpdump in a second shell:
+Continue with previous example: listen to tcpdump on spoke0-z1 in a second shell:
 
 ```
 $ ssh root@52.116.134.171
-
+...
+root@xxxx tcpdump host 192.168.0.4
 ```
+

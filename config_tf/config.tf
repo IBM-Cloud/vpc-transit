@@ -17,6 +17,28 @@ data "ibm_resource_group" "group" {
   name = var.resource_group_name
 }
 
+resource "tls_private_key" "private_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "ssh_key_tmp_private" {
+  content         = tls_private_key.private_key.private_key_pem
+  filename        = "${abspath(path.root)}/id_rsa"
+  file_permission = "0600"
+}
+
+resource "local_file" "ssh_key_tmp_public" {
+  content         = tls_private_key.private_key.public_key_pem
+  filename        = "${abspath(path.root)}/id_rsa.pub"
+  file_permission = "0644"
+}
+
+resource "ibm_is_ssh_key" "ssh_key_tmp" {
+  name       = var.basename
+  public_key = tls_private_key.private_key.public_key_openssh
+}
+
 locals {
   provider_region = var.region
   spoke_count     = var.spoke_count
@@ -123,7 +145,7 @@ output "settings" {
     resource_group_id            = data.ibm_resource_group.group.id
     vpn                          = var.vpn
     vpn_route_based              = var.vpn_route_based
-    ssh_key                      = data.ibm_is_ssh_key.ssh_key
+    ssh_key_ids                  = [data.ibm_is_ssh_key.ssh_key.id, ibm_is_ssh_key.ssh_key_tmp.id]
     basename                     = var.basename
     image_id                     = data.ibm_is_image.ubuntu.id
     profile                      = var.profile
