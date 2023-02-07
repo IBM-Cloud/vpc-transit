@@ -128,6 +128,16 @@ class Curl(ToFrom):
 
 @dataclass
 class DNS(ToFrom):
+    def __str__(self):
+        if verbose_output():
+          src = f"l-{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
+          dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) r-{basic_name(self.destination.name)}"
+          return f"{src:50} -> {dst}"
+        else:
+          src = f"l-{basic_name(self.source.name)}"
+          dst = f"r-{self.dns_name(self.destination)}"
+          return f"{src:15} -> {dst}"
+
     def dns_name(self, instance):
         name = instance.name
         zone = f"{name[:-6]}.com"  # instance name is prefix_transit-z0-s0 for zone and subnet the zone is prefix_transit.com

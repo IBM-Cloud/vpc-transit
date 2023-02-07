@@ -3,6 +3,9 @@ variable "resource_group_name" {}
 variable "basename" {}
 variable "region" {}
 variable "spoke_count" {}
+variable "enterprise_phantom_address_prefixes_in_transit" {
+  type = bool
+}
 variable "make_redis" {
   type    = bool
   default = false

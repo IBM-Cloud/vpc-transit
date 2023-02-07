@@ -139,23 +139,24 @@ output "settings" {
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
-    zones                        = local.zones
-    region                       = var.region
-    resource_group_name          = var.resource_group_name
-    resource_group_id            = data.ibm_resource_group.group.id
-    vpn                          = var.vpn
-    vpn_route_based              = var.vpn_route_based
-    ssh_key_ids                  = [data.ibm_is_ssh_key.ssh_key.id, ibm_is_ssh_key.ssh_key_tmp.id]
-    basename                     = var.basename
-    image_id                     = data.ibm_is_image.ubuntu.id
-    profile                      = var.profile
-    make_redis                   = var.make_redis
-    make_postgresql              = var.make_postgresql
-    make_cos                     = var.make_cos
-    firewall                     = var.firewall
-    firewall_nlb                 = var.firewall_nlb
-    number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
-    all_firewall                 = var.all_firewall
-    test_lbs                     = var.test_lbs
+    zones                                          = local.zones
+    region                                         = var.region
+    resource_group_name                            = var.resource_group_name
+    resource_group_id                              = data.ibm_resource_group.group.id
+    enterprise_phantom_address_prefixes_in_transit = var.enterprise_phantom_address_prefixes_in_transit
+    vpn                                            = var.vpn
+    vpn_route_based                                = var.vpn_route_based
+    ssh_key_ids                                    = [data.ibm_is_ssh_key.ssh_key.id, ibm_is_ssh_key.ssh_key_tmp.id]
+    basename                                       = var.basename
+    image_id                                       = data.ibm_is_image.ubuntu.id
+    profile                                        = var.profile
+    make_redis                                     = var.make_redis
+    make_postgresql                                = var.make_postgresql
+    make_cos                                       = var.make_cos
+    firewall                                       = var.firewall
+    firewall_nlb                                   = var.firewall_nlb
+    number_of_firewalls_per_zone                   = var.number_of_firewalls_per_zone
+    all_firewall                                   = var.all_firewall
+    test_lbs                                       = var.test_lbs
   }
 }

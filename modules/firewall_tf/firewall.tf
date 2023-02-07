@@ -126,18 +126,14 @@ module "transit_zones" {
 }
 
 #----------------------------------------------------------------------
-# NOTE: Add additional address prefixes to allow the transit gateways to learn routes.  These address prefixes
-# cover the entire zones (not specific vpc subnets)
-# - spokes need routes to the enterprise
-# - enterprise need routes to the spokes
+# NOTE: Add additional address prefixes in the transit for the enterprise to allow the
+# spokes to learn enterprise routes via transit gateways
 locals {
-  # todo
-  #address_prefixes = concat(flatten(local.spokes_zones), local.enterprise_zones)
-  address_prefixes = local.enterprise_zones
+  address_prefixes = local.settings.enterprise_phantom_address_prefixes_in_transit ? local.enterprise_zones : []
 }
 resource "ibm_is_vpc_address_prefix" "locations" {
   for_each = { for k, zone in local.address_prefixes : k => zone }
-  name     = "${local.settings.basename}fake${each.key}"
+  name     = "${local.settings.basename}phantom-enterprise${each.key}"
   vpc      = local.transit_vpc.id
   zone     = each.value.zone
   cidr     = each.value.cidr
