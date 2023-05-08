@@ -35,8 +35,9 @@ resource "local_file" "ssh_key_tmp_public" {
 }
 
 resource "ibm_is_ssh_key" "ssh_key_tmp" {
-  name       = var.basename
-  public_key = tls_private_key.private_key.public_key_openssh
+  name           = var.basename
+  resource_group = data.ibm_resource_group.group.id
+  public_key     = tls_private_key.private_key.public_key_openssh
 }
 
 locals {
