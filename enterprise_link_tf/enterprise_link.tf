@@ -37,6 +37,14 @@ module "enterprise_link_tgw" {
   transit_vpc    = local.transit_vpc
 }
 
+module "enterprise_link_vpn" {
+  count          = local.settings.vpn ? 1 : 0
+  source         = "../modules/vpn_tf"
+  settings       = local.settings
+  enterprise_vpc = local.enterprise_vpc
+  transit_vpc    = local.transit_vpc
+}
+
 output "tg_gateway" {
   value = local.settings.vpn ? null : module.enterprise_link_tgw[0].tg_gateway
 }
