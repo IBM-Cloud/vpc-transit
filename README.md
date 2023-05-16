@@ -92,6 +92,23 @@ DNS:
 
 ![image](images/vpc-transit-dns-vpe.svg)
 
+# VPN as an alternative to the Direct Link Simulation
+The tutorials are all about direct link so if you are following the tutorial ignore this section on VPN.
+
+It is possible to repalce the direct link simulation with VPN Gateways using the following configuration. 
+
+![image](images/vpc-transit-vpn-zones.svg)
+
+config_tf/terraform.tfvars:
+```
+enterprise_phantom_address_prefixes_in_transit = true
+vpn = true
+firewall = false
+```
+
+The phantom prefixes are required for any enterprise to spoke traffic.  The vpn flag will direct the `./apply.sh enterprise_link_tf` to create VPN Gateways and VPN Gateway Connections instead of Transit Gateway connections.  The firewalls must not be created - this is a VPN only configuration.
+
+All the tests should pass
 
 ## Python prerequisite
 Python is used for testing.  You can skip the testing steps and trust the pass/fail results described in the tutorial.
