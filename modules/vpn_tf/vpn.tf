@@ -27,7 +27,7 @@ locals {
 #----------------------------------------------------------------------
 # NOTE: Add additional address prefixes in the transit for the enterprise to allow the
 # spokes to learn enterprise routes via transit gateways.  Note this puts the enterprise
-# CIDRs in a specific zone.
+# CIDRs in a cloud zone.
 resource "ibm_is_vpc_address_prefix" "locations" {
   for_each = { for k, zone in local.address_prefixes : k => zone }
   name     = "${local.settings.basename}phantom-enterprise${each.key}"
@@ -45,6 +45,8 @@ resource "ibm_is_vpn_gateway" "enterprise" {
   mode           = local.settings.vpn_route_based ? "route" : "policy"
   tags           = local.tags
 }
+
+# put a vpn appliance in each zone of the transit
 resource "ibm_is_vpn_gateway" "transit" {
   #for_each       = local.transit_vpc.subnets
   for_each       = { for zone_number, zone in local.transit_vpc.zones : zone_number => zone }
@@ -56,7 +58,8 @@ resource "ibm_is_vpn_gateway" "transit" {
 }
 
 locals {
-  # full cross product between enterprise zone to different transit zone, notice the if statement
+  # partial cross product between enterprise zone to different transit zone, notice the if statement
+  # Exact match between between enterprise CIDRs and transit CIDRs
   partial_enterprise_cross_transit = flatten([
     for enterprise_zone_number, enterprise in ibm_is_vpn_gateway.enterprise : [
       for transit_zone_number, transit in ibm_is_vpn_gateway.transit : {
@@ -67,8 +70,9 @@ locals {
       } if enterprise_zone_number != transit_zone_number
     ]
   ])
-  # partial cross product, enterprise zones are mapped to cloud zones, each enterprise zone is connected to the corresponding cloud zone
-  # The cloud peer cide is the entire cloud 10.0.0.0/8
+
+  # enterprise zones are mapped to cloud zones, each enterprise zone is connected to the corresponding cloud zone
+  # The cloud peer cide is the entire cloud 10.0.0.0/8 allowing all spokes to be accessed through these VPN gateways
   zonal_enterprise_cross_transit = flatten([
     for enterprise_zone_number, enterprise in ibm_is_vpn_gateway.enterprise : {
       enterprise_cidr        = local.enterprise_zones[enterprise_zone_number].cidr
@@ -79,9 +83,6 @@ locals {
   ])
 
   enterprise_cross_transit = concat(local.zonal_enterprise_cross_transit, local.partial_enterprise_cross_transit)
-}
-output "partial_enterprise_cross_transit" {
-  value = local.partial_enterprise_cross_transit
 }
 
 resource "ibm_is_vpn_gateway_connection" "enterprise_policybased" {
@@ -119,20 +120,6 @@ resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
   accept_routes_from_resource_type = ["vpn_gateway"]
 }
 
-/*
-does not work for policy VPN gateway
-resource "ibm_is_vpc_routing_table_route" "transit" {
-  vpc           = local.transit_vpc.id
-  routing_table = local.transit_vpc.routing_table
-  zone          = "us-south-1"
-  name          = "kludged"
-  destination   = "192.168.1.0/24"
-  action        = "deliver"
-  next_hop      = ibm_is_vpn_gateway_connection.transit_policybased[1].gateway_connection
-}
-*/
-
-
 output "vpn_gateway_enterprise" {
   value = ibm_is_vpn_gateway.enterprise
 }
@@ -148,44 +135,3 @@ output "vpn_gateway_connection_enterprise" {
 output "vpn_gateway_connection_transit" {
   value = ibm_is_vpn_gateway_connection.transit_policybased
 }
-
-
-/*
-        #enterprise_peer_address = ibm_is_vpn_gateway.enterprise[enterprise_zone_number].public_ip_address
-        #transit_peer_address    = ibm_is_vpn_gateway.transit[transit_zone_number].public_ip_address
-# connect vpns to each other
-resource "ibm_is_vpn_gateway_connection" "enterprise_policybased" {
-  for_each       = ibm_is_vpn_gateway.enterprise
-  name           = each.value.name
-  vpn_gateway    = each.value.id
-  peer_address   = ibm_is_vpn_gateway.transit[each.key].public_ip_address
-  preshared_key  = local.vpn_preshared_key
-  admin_state_up = true
-  local_cidrs    = [local.enterprise_zones[each.key].cidr]
-  peer_cidrs     = [local.settings.cloud_zones_cidr[each.key].cidr]
-}
-resource "ibm_is_vpn_gateway_connection" "transit_policybased" {
-  for_each       = ibm_is_vpn_gateway.transit
-  name           = each.value.name
-  vpn_gateway    = each.value.id
-  peer_address   = ibm_is_vpn_gateway.enterprise[each.key].public_ip_address
-  preshared_key  = local.vpn_preshared_key
-  admin_state_up = true
-  local_cidrs    = [local.enterprise_zones[each.key].cidr]
-  peer_cidrs     = [local.settings.cloud_zones_cidr[each.key].cidr]
-  local_cidrs    = [local.settings.cloud_zones_cidr[each.key].cidr]
-  peer_cidrs     = [local.enterprise_zones[each.key].cidr]
-}
-
-# Route from the enterprise to the appropriate enterprise zonal VPN
-locals {
-  enterprise_routes = { for source_zone_number, source_zone in ibm_is_ibm_is_vpn_gateway.enterprise : source_zone_number => source_zone }
-}
-resource "ibm_is_vpc_routing_table_route" "enterprise_to_enterprise_egress" {
-
-}
-
-
-}
-
-*/

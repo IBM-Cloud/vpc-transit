@@ -29,3 +29,10 @@ number_of_firewalls_per_zone = 1
 
 # test load balancers?  If true: 5 load balancers are created in spoke0, nlb, alb and alb regional
 test_lbs = false
+
+# vpn configuration - it is possible to simulate enterprise <> transit connectivity using vpn instead of the direct
+# link simulation using the vpn variable and turning off firewall.  Firewall's generally support vpn so it would be
+# unusual to configure both a VPC VPN gateway and a firewall so both are not supported.
+# vpn = true
+# firewall = false
+# enterprise_phantom_address_prefixes_in_transit = true

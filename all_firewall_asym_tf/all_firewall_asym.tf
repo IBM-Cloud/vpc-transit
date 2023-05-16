@@ -42,7 +42,7 @@ locals {
 
   # In the egress zones provide more exact routes to the destination zones.
   # stays in the same zone for routes spoke : cloud (spoke/transit) -> firewall in zone
-  spoke_to_spoke_lower_zone = [for spoke_number, spoke_vpc in local.spokes.vpcs : [
+  spoke_to_spoke_lower_zone = local.settings.all_firewall ? [for spoke_number, spoke_vpc in local.spokes.vpcs : [
     for source_zone_number in range(local.settings.zones) : [
       for dest_zone_number in range(0, source_zone_number) : {
         vpc           = spoke_vpc.id
@@ -54,7 +54,7 @@ locals {
         next_hop      = local.firewall.zones[dest_zone_number].firewall_ip
       }
     ]]
-  ]
+  ] : []
 
   # todo
   # Transit will allow the transit gateway to select the spoke zone based on the spoke destination address.
