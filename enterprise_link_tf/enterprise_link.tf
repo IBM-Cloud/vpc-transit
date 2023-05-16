@@ -48,3 +48,7 @@ module "enterprise_link_vpn" {
 output "tg_gateway" {
   value = local.settings.vpn ? null : module.enterprise_link_tgw[0].tg_gateway
 }
+
+output "vpn" {
+  value = local.settings.vpn ? module.enterprise_link_vpn[0] : null
+}

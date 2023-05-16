@@ -139,7 +139,10 @@ def dump_tgws(tf_dirs):
     if len(tf_dirs.enterprise_link_tf) == 0:
         print('  no enterprise_link_tf')
     else:
-        dump_tgw(tf_dirs.enterprise_link_tf.tg_gateway)
+        if hasattr(tf_dirs.enterprise_link_tf, 'tg_gateway'):
+          dump_tgw(tf_dirs.enterprise_link_tf.tg_gateway)
+        if hasattr(tf_dirs.enterprise_link_tf, 'vpn'):
+          print(tf_dirs.enterprise_link_tf.vpn)
     if len(tf_dirs.transit_spoke_tgw_tf) == 0:
         print('  no transit_spoke_tgw_tf')
     else:

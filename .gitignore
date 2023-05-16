@@ -5,6 +5,8 @@ credentials.json
 config.sh
 #vim swap files
 [._]*.sw[a-p]
+.sw[a-p]
+
 local
 dataVolume.json
 node_modules
