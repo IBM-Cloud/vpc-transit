@@ -50,7 +50,7 @@ locals {
     }
     ]
   ]
-  spoke_egress_routes = local.settings.all_firewall ? flatten(local.spoke_egress_to_enterprise) : []
+  spoke_egress_routes = flatten(local.spoke_egress_to_enterprise)
 }
 
 resource "ibm_is_vpc_routing_table_route" "spoke_to_enterprise_via_same_zone_firewall" {

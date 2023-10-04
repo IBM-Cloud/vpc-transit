@@ -6,6 +6,8 @@ resource_group_name = "Default"                   # YOUR resource group
 basename = "tvpc"     # change if you wish, maybe your initials
 region   = "us-south" # change as desired
 
+# end of conifguration to begin part1 of the tutorial
+
 # In part 1 of the tutorial enterprise phantom address prefixes are put in the transit for the 
 # initial steps.  But in the final step these are removed and replaced with egress routing in spokes.
 # But in part 2 to allow VPE enterprise -> spoke to work they are added back

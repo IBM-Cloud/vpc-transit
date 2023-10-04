@@ -31,7 +31,9 @@ locals {
   transit_vpc     = local.transit.vpc
   firewall        = data.terraform_remote_state.firewall.outputs
 
-  transit_ingress_delegate = local.settings.all_firewall ? [for zone_number, zone in local.transit_zones : {
+  // delegate traffic destined to the transit to default behavior: deliver directly (not through
+  // firewall-router)
+  transit_ingress_delegate = [for zone_number, zone in local.transit_zones : {
     vpc           = local.transit_vpc.id
     routing_table = local.firewall.ingress_route_table.routing_table
     zone          = zone.zone
@@ -40,7 +42,8 @@ locals {
     destination   = zone.cidr
     next_hop      = "0.0.0.0"
     }
-  ] : []
+  ]
+  # if all traffic passes through the firewall then do not add the transit ingress delegate routes
   routes = local.settings.all_firewall ? [] : local.transit_ingress_delegate
 }
 
