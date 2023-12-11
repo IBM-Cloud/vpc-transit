@@ -155,20 +155,26 @@ def left_right_combinations(ret, left_instances, right_instances):
             ret.append((Instance(**instance_left), Instance(**instance_right)))
 
 
-def all_instances():
-    workers = [*tf_dirs.test_instances_tf.enterprise["workers"].values(), *tf_dirs.test_instances_tf.transit["workers"].values()] + [worker for spoke in tf_dirs.test_instances_tf.spokes.values() for worker in spoke["workers"].values()]
+#    workers = [*tf_dirs.test_instances_tf.enterprise["workers"].values(), *tf_dirs.test_instances_tf.transit["workers"].values()] + [worker for spoke in tf_dirs.test_instances_tf.spokes.values() for worker in spoke["workers"].values()]
+
+def all_instances_not_power():
+    workers = [*tf_dirs.test_instances_tf.enterprise["workers"].values(), \
+      *tf_dirs.test_instances_tf.transit["workers"].values()] + \
+      [worker for spoke in tf_dirs.test_instances_tf.spokes.values() for worker in spoke["workers"].values()]
     return [Instance(**worker) for worker in workers]
 
-def instance_combinations():
-    instances = all_instances()
-    return itertools.product(instances, instances)
+def all_instances():
+    workers = [worker for spoke in tf_dirs.power_tf.spokes_power_instances.values() for worker in spoke["workers"].values()]
+    return [Instance(**worker) for worker in workers] + all_instances_not_power()
 
 def add_curl_to_test_dns(curls):
-    for left, right in instance_combinations():
+    #for left, right in instance_combinations():
+    for left, right in itertools.product(all_instances(), all_instances_not_power()):
         curls.append(DNS(left, right))
 
 def add_curl_connectivity_tests(curls):
-    for left, right in instance_combinations():
+    #for left, right in instance_combinations():
+    for left, right in itertools.product(all_instances(), all_instances()):
         curls.append(Curl(left, right))
 
 def zoneid(instance: Instance):
@@ -262,8 +268,9 @@ re_host_command_has_address = re.compile(r"(?s).*? has address ([0-9\.]+)")
 
 def fip_resolves_hostname(fip, dns_name):
     """ssh to fip and resolve the hostname"""
-    ret = command_on_fip(fip, ["resolvectl", "flush-caches"])
-    ret.assert_for_test()
+    # TODO: if this is required, need to parameterize for SLES (power) which does not have it
+    # ret = command_on_fip(fip, ["resolvectl", "flush-caches"])
+    # ret.assert_for_test()
     ret = command_on_fip(fip, ["host", dns_name])
     ret.assert_for_test()
     global re_host_command_has_address

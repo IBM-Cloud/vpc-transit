@@ -47,8 +47,10 @@ locals {
     ]]
   ])
 
-  # the commented out bits show how to make load balancers in the transit and every spoke.
-  # that is a lot of load balancers... Commenting out for now.
+  # the commented out bits show how to make load balancers in the transit
+  # only in spoke 0, if it exists
+  # spoke_count = length(local.spokes.vpcs)
+  spoke_count = min(1, length(local.spokes.vpcs))
   lbs = flatten([for lb_type in local.lb_types : [
     /*
     {
@@ -57,17 +59,18 @@ locals {
     lb_type     = lb_type.lb_type
     zone_number = lb_type.zone_number
     },
-    */
-    #[for spoke_number, spoke_vpc in local.spokes.vpcs : {
-    [for spoke_number, spoke_vpc in [local.spokes.vpcs[0]] : {
+  */
+    [for lb_type in local.lb_types : [for spoke_number in range(local.spoke_count) : {
       name        = "spoke${spoke_number}-${lb_type.lb_type}-z${lb_type.zone_number}"
-      vpc         = spoke_vpc
+      vpc         = local.spokes.vpcs[spoke_number]
       lb_type     = lb_type.lb_type
       zone_number = lb_type.zone_number
     }]]
-  ])
+  ]])
+
   zlbs = { for lb in local.lbs : lb.name => lb if local.settings.test_lbs }
 }
+
 
 # All load balancers created are put into a single map and created here.  Transit and all spokes:
 module "lbs" {

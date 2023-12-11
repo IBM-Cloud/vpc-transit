@@ -40,7 +40,7 @@ EOF
 
 }
 
-all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
+all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf power_tf"
 just_print=false
 apply=true
 
@@ -110,7 +110,7 @@ for dir in $tf; do
     echo '>>>' "$opt resources with terraform in the $dir/ directory"
     # bug https://jiracloud.swg.usma.ibm.com:8443/browse/VPN-576
     case $dir in
-      enterprise_link_tf) parallelism_n=1;;
+      enterprise_link_tf|power_tf) parallelism_n=1;;
       *) parallelism_n=10;;
     esac
     

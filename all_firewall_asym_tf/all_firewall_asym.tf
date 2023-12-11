@@ -34,7 +34,6 @@ locals {
   config          = data.terraform_remote_state.config.outputs
   settings        = local.config.settings
   transit_zones   = local.config.transit_zones
-  spokes_zones    = local.config.spokes_zones
 
   spokes   = data.terraform_remote_state.spokes.outputs
   transit  = data.terraform_remote_state.transit.outputs

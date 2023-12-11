@@ -2,7 +2,13 @@ variable "ssh_key_name" {}
 variable "resource_group_name" {}
 variable "basename" {}
 variable "region" {}
+variable "datacenter" {
+  type = string
+}
 variable "spoke_count" {}
+variable "spoke_count_power" {
+  type = number
+}
 variable "enterprise_phantom_address_prefixes_in_transit" {
   type = bool
 }
@@ -63,4 +69,21 @@ variable "all_firewall" {
 variable "test_lbs" {
   type    = bool
   default = false
+}
+
+resource "null_resource" "preconditions" {
+  lifecycle {
+    precondition {
+      condition     = !(var.spoke_count_power > 0 && var.datacenter == "")
+      error_message = "datacenter is required when using powerVS spokes"
+    }
+    precondition {
+      condition     = !(var.spoke_count_power == 0 && var.datacenter != "")
+      error_message = "datacenter is only used for powerVS spokes.  The datacenter configuration is being ignored"
+    }
+    precondition {
+      condition     = !(var.spoke_count_power > var.spoke_count)
+      error_message = "spoke_count_power is the number of spokes that are power.  This value can not be larger then the total spoke_count"
+    }
+  }
 }

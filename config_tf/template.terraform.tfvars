@@ -1,10 +1,11 @@
 # must adjust these values to your environment:
-ssh_key_name        = "YOUR_VPC_INSTANCE_SSH_KEY" # YOUR ssh key
-resource_group_name = "Default"                   # YOUR resource group
+ssh_key_name        = ""        # Optional additional ssh key added to VPC instances.  A temporary ssh key will be added to all instances.
+resource_group_name = "Default" # YOUR resource group
 
 # optionally change these
-basename = "tvpc"     # change if you wish, maybe your initials
-region   = "us-south" # change as desired
+basename   = "tvpc"     # change if you wish, maybe your initials
+region     = "us-south" # change as desired
+datacenter = ""         # Value like dal10.  Only required to support PowerVS spokes
 
 # end of conifguration to begin part1 of the tutorial
 
@@ -19,10 +20,15 @@ enterprise_phantom_address_prefixes_in_transit = true
 # After changing this value re-apply all layers:  ./apply.sh : LAST_LAYER
 all_firewall = false
 
-# If following the tutorial do not initially modify the values below
-make_redis  = true
 spoke_count = 2 #set to 0 to remove spokes
-zones       = 3
+
+make_postgresql = true
+spoke_count     = 2 #set to 0 to remove spokes
+zones           = 3
+
+# power configuration.  Number of spokes that will be power spokes.
+# Example: if spoke_count=3 and spoke_count_power=2 then there will be 1 VPC spoke and 2 powerVS spokes
+spoke_count_power = 2
 
 # firewall_nlb is set to true to create a NLB that distributes load to the actual firewall-routers
 # If firewall_nlb s true set the number of firewall instances

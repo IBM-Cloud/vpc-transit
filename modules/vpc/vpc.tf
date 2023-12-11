@@ -10,14 +10,7 @@ vpc
 variable "name" {}
 variable "settings" {}
 variable "zones_address_prefixes" {} # [[{zone: "us-south-1", cidr = "10.0.0,0/16}, ...], []]"
-/*
-  zones_subnets = [for zone_number, zone in var.zones : [for subnet_number, subnet in zone.subnets : {
-    subnet_number = subnet_number # subnet in zone: 0,1,2,3
-    zone          = subnet.zone   # us-south-1
-    cidr          = subnet.cidr
-    name          = "z${subnet.zone_number}-s${subnet.subnet_number}"
-  }]]
-*/
+
 variable "zones_subnets" {} # zones is a list of both address_prefixes and subnets
 
 # Make a firewall route table and put the firewall subnets into the route table.  Delegate to the VPC.
@@ -39,18 +32,6 @@ locals {
   zones = [for zone_number, subnets in var.zones_subnets : {
     zone = subnets[0].zone
   }]
-  /*
-  todo
-
-  flat_address_prefixes = flatten([for zone_number, zone in var.zones : [for address_prefix_number, address_prefix in zone.address_prefixes : {
-
-    # address prefixes are similar to subnets, see above
-    zone_number           = zone_number
-    address_prefix_number = address_prefix_number
-    address_prefix        = address_prefix
-  }]])
-  address_prefixes = { for address_prefix in local.flat_address_prefixes : "z${address_prefix.zone_number}-s${address_prefix.address_prefix_number}" => address_prefix.address_prefix }
-  */
 }
 
 resource "ibm_is_vpc" "location" {

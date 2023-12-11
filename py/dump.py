@@ -18,7 +18,7 @@ class FromDict:
 class TerraformOutput:
   def __init__(self):
     # from apply.sh
-    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf"
+    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf power_tf"
     self.tf_dir_outputs = collections.OrderedDict()
     for tf_dir_name in all.split():
       try:
@@ -56,7 +56,12 @@ def tf_output(dir):
       return tfstate["outputs"]
 
 def dump_vpc_instances(name, instances, vpc):
-    print(f"vpc - {name} {vpc['id']}")
+    print(f"test instances vpc - {name} {vpc['id']}")
+    for instance_name, instance in instances["workers"].items():
+      print(f'  {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]} {instance["id"]}')
+
+def dump_power_instances(name, instances, power):
+    print(f"test instances power - {name} {power['guid']}")
     for instance_name, instance in instances["workers"].items():
       print(f'  {instance["name"]} {instance["primary_ipv4_address"]} {instance["fip"]} {instance["id"]}')
 
@@ -67,6 +72,8 @@ def dump_test_instances(tf_dirs):
     dump_vpc_instances("transit", tf_dirs.test_instances_tf.transit, tf_dirs.transit_tf.vpc)
     for spoke_number, spoke in tf_dirs.test_instances_tf.spokes.items():
       dump_vpc_instances(f"spoke{spoke_number}", spoke, tf_dirs.spokes_tf.vpcs[int(spoke_number)])
+    for spoke_number, spoke in tf_dirs.power_tf.spokes_power_instances.items():
+      dump_power_instances(f"spoke{spoke_number}", spoke, tf_dirs.power_tf.powers[int(spoke_number) - len(tf_dirs.spokes_tf.vpcs)])
 
 def dump_firewall(tf_dirs):
     print("firewalls in transit")
@@ -99,9 +106,8 @@ def dump_vpes(tf_dirs):
 def dump_zones(name, zones):
     print(f'zone {name}')
     for zone in zones:
-      print(f'  address_prefix')
-      for address_prefix in zone['address_prefixes']:
-        print(f'    {address_prefix["cidr"]}')
+      print(f'  zone {zone["zone"]}')
+      print(f'  address_prefix {zone["cidr"]}')
       print(f'  subnet')
       for subnet in zone['subnets']:
         print(f'    {subnet["cidr"]}')
@@ -151,7 +157,7 @@ def dump_tgws(tf_dirs):
 
 def dump_settings(settings):
   print("settings:")
-  for setting in ["subnet_worker", "subnet_dns", "subnet_vpe", "subnet_fw"]:
+  for setting in ["spoke_count", "spoke_count_power", "subnet_worker", "subnet_dns", "subnet_vpe", "subnet_fw"]:
     print(f'  {setting} {settings[setting]}')
 
 def dump_config(tf_dirs):

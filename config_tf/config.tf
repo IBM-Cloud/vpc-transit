@@ -1,5 +1,6 @@
 data "ibm_is_ssh_key" "ssh_key" {
-  name = var.ssh_key_name
+  count = var.ssh_key_name == "" ? 0 : 1
+  name  = var.ssh_key_name
 }
 
 data "ibm_is_image" "ubuntu" {
@@ -41,9 +42,12 @@ resource "ibm_is_ssh_key" "ssh_key_tmp" {
 }
 
 locals {
-  provider_region = var.region
-  spoke_count     = var.spoke_count
-  zones           = var.zones
+  ssh_key_ids       = var.ssh_key_name == "" ? [ibm_is_ssh_key.ssh_key_tmp.id] : [data.ibm_is_ssh_key.ssh_key[0].id, ibm_is_ssh_key.ssh_key_tmp.id]
+  provider_region   = var.region
+  spoke_count       = var.spoke_count
+  spoke_count_power = var.spoke_count_power
+  spoke_count_vpc   = var.spoke_count - var.spoke_count_power
+  zones             = var.zones
   # Each VPC is first broken into zones indexed 0..2
   # the zone is the first break down.  Terraform will refer to them as zone 0, 1, 2 (1 and 2 optional)
   # They cidr blocks are 1,2,3
@@ -69,6 +73,11 @@ locals {
       cidr = cidrsubnet(zone_cidr.cidr, 1, s)
       zone = zone_cidr.zone
   }]]
+}
+
+# public key
+output "tls_public_key" {
+  value = tls_private_key.private_key.public_key_openssh
 }
 
 # zones has the description for each zone.  subnets, address prefixes, entire cidr block
@@ -105,10 +114,6 @@ locals {
     for zone_cidr in zone_ciders : {
       zone = zone_cidr.zone
       cidr = zone_cidr.cidr
-      address_prefixes = [for subnet in range(4) : {
-        cidr = cidrsubnet(zone_cidr.cidr, 2, subnet)
-        zone = zone_cidr.zone
-      }]
       subnets = [for subnet in range(4) : {
         cidr = cidrsubnet(zone_cidr.cidr, 2, subnet)
         zone = zone_cidr.zone
@@ -124,30 +129,43 @@ output "spokes_zones" {
   value = [for spoke in range(local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
 }
 
+output "spokes_zones_vpc" {
+  value = [for spoke in range(0, local.spoke_count - local.spoke_count_power) : local.cloud_vpcs_zones[spoke + 1]]
+}
+
+output "spokes_zones_power" {
+  value = [for spoke in range(local.spoke_count - local.spoke_count_power, local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
+}
+
 output "settings" {
   value = {
     myip = data.external.ifconfig_me.result.ip # replace with your IP if ifconfig.me does not work
     # todo used for security groups seems off
-    cloud_cidr       = local.cloud_cidr
-    cloud_zones_cidr = local.cloud_zones_cidr
-    enterprise_cidr  = local.enterprise_cidr
-    user             = "root"
-    subnet_worker    = local.subnet_worker
-    subnet_fw        = local.subnet_fw
-    subnet_dns       = local.subnet_dns
-    subnet_vpe       = local.subnet_vpe
+    cloud_cidr        = local.cloud_cidr
+    cloud_zones_cidr  = local.cloud_zones_cidr
+    enterprise_cidr   = local.enterprise_cidr
+    user              = "root"
+    subnet_worker     = local.subnet_worker
+    subnet_fw         = local.subnet_fw
+    subnet_dns        = local.subnet_dns
+    subnet_vpe        = local.subnet_vpe
+    spoke_count       = local.spoke_count
+    spoke_count_vpc   = local.spoke_count_vpc
+    spoke_count_power = local.spoke_count_power
     tags = [
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
     zones                                          = local.zones
     region                                         = var.region
+    datacenter                                     = var.datacenter
     resource_group_name                            = var.resource_group_name
     resource_group_id                              = data.ibm_resource_group.group.id
     enterprise_phantom_address_prefixes_in_transit = var.enterprise_phantom_address_prefixes_in_transit
     vpn                                            = var.vpn
     vpn_route_based                                = var.vpn_route_based
-    ssh_key_ids                                    = [data.ibm_is_ssh_key.ssh_key.id, ibm_is_ssh_key.ssh_key_tmp.id]
+    ssh_key_ids                                    = local.ssh_key_ids
+    ssh_key_name                                   = var.ssh_key_name
     basename                                       = var.basename
     image_id                                       = data.ibm_is_image.ubuntu.id
     profile                                        = var.profile

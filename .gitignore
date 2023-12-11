@@ -14,6 +14,7 @@ node_modules
 *.input.json
 terraform.tfvars
 terraform.tfstate.lock.info
+terraform.*.backup
 *.tfstate
 *.tfstate.backup
 .terraform*
