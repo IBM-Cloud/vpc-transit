@@ -1,9 +1,7 @@
 variable "name" {}
 variable "settings" {}
-variable "zones_subnets" {
-}
-# zones is a list of both address_prefixes and subnets
-variable "make_firewall_route_table" {}
+variable "zones_subnets" {}
+variable "dns_ips" {}
 
 locals {
   subnet            = var.zones_subnets[0][0]
@@ -44,8 +42,8 @@ resource "ibm_pi_network" "private" {
   pi_cloud_instance_id = ibm_resource_instance.location.guid
   pi_network_type      = "vlan"
   pi_cidr              = local.subnet.cidr
-  # TODO TODO todo
-  pi_dns = ["10.1.0.68"]
+  pi_dns               = [var.dns_ips[0]]
+  # pi_dns               = var.dns_ips
 }
 
 output "power" {

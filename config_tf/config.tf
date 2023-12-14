@@ -44,9 +44,9 @@ resource "ibm_is_ssh_key" "ssh_key_tmp" {
 locals {
   ssh_key_ids       = var.ssh_key_name == "" ? [ibm_is_ssh_key.ssh_key_tmp.id] : [data.ibm_is_ssh_key.ssh_key[0].id, ibm_is_ssh_key.ssh_key_tmp.id]
   provider_region   = var.region
-  spoke_count       = var.spoke_count
+  spoke_count       = var.spoke_count_vpc + var.spoke_count_power
   spoke_count_power = var.spoke_count_power
-  spoke_count_vpc   = var.spoke_count - var.spoke_count_power
+  spoke_count_vpc   = var.spoke_count_vpc
   zones             = var.zones
   # Each VPC is first broken into zones indexed 0..2
   # the zone is the first break down.  Terraform will refer to them as zone 0, 1, 2 (1 and 2 optional)
@@ -129,12 +129,14 @@ output "spokes_zones" {
   value = [for spoke in range(local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
 }
 
+# VPCs start at spoke0 consuming CIDR blocks following the transit
 output "spokes_zones_vpc" {
-  value = [for spoke in range(0, local.spoke_count - local.spoke_count_power) : local.cloud_vpcs_zones[spoke + 1]]
+  value = [for spoke in range(0, local.spoke_count_vpc) : local.cloud_vpcs_zones[spoke + 1]]
 }
 
+# Powers start after the VPCS consuming CIDR blocks following the VPCs
 output "spokes_zones_power" {
-  value = [for spoke in range(local.spoke_count - local.spoke_count_power, local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
+  value = [for spoke in range(local.spoke_count_vpc, local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
 }
 
 output "settings" {

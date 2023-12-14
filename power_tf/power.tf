@@ -21,6 +21,13 @@ data "terraform_remote_state" "test_instances" {
     path = "../test_instances_tf/terraform.tfstate"
   }
 }
+data "terraform_remote_state" "dns" {
+  backend = "local"
+
+  config = {
+    path = "../dns_tf/terraform.tfstate"
+  }
+}
 locals {
   config_tf          = data.terraform_remote_state.config.outputs
   tls_public_key     = local.config_tf.tls_public_key
@@ -32,6 +39,8 @@ locals {
   tg_gateway         = local.transit_spoke_tgw.tg_gateway
   test_instances     = data.terraform_remote_state.test_instances.outputs
   transit            = local.test_instances.transit
+  dns_tf             = data.terraform_remote_state.dns.outputs
+  transit_dns_ips    = [for location in local.dns_tf.module_dns.transit.dns.custom_resolver.locations : location.dns_server_ip]
 
   provider_region = local.settings.region
   datacenter      = local.settings.datacenter
@@ -46,12 +55,12 @@ locals {
 
 # Power spokes indexed by spoke number (these start counting after the vpc spokes)
 module "spokes_power" {
-  for_each                  = { for spoke, zones in local.spokes_zones_power : spoke + local.settings.spoke_count_vpc => zones }
-  source                    = "../modules/power"
-  name                      = "${local.settings.basename}-spoke${each.key}"
-  settings                  = local.settings
-  zones_subnets             = local.zones_subnets[each.key]
-  make_firewall_route_table = false
+  for_each      = { for spoke, zones in local.spokes_zones_power : spoke + local.settings.spoke_count_vpc => zones }
+  source        = "../modules/power"
+  name          = "${local.settings.basename}-spoke${each.key}"
+  settings      = local.settings
+  zones_subnets = local.zones_subnets[each.key]
+  dns_ips       = local.transit_dns_ips
 }
 
 output "powers" {
@@ -78,7 +87,7 @@ output "tg_gateway" {
   }
 }
 
-# * need to choose either a personal key or the temporary key created by terraform
+# need to choose either a personal key or the temporary key created by terraform
 #data "ibm_pi_key" "personal" {
 #  pi_key_name          = var.settings.ssh_key_name
 #  pi_cloud_instance_id = var.power.guid
@@ -121,10 +130,3 @@ output "fixpower" {
     EOS
   }]
 }
-
-/*
-      ip route add 10.0.0.0/8 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev eth0
-      ip route add 172.16.0.0/12 via ${power.power.network_private.pi_gateway} dev eth0
-      ip route add 192.168.0.0/16 via ${power.power.network_private.pi_gateway} dev eth0
-      ip route change default via ${power.power.network_public.pi_gateway} dev eth1
-      */
