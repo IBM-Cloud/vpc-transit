@@ -1,11 +1,11 @@
 # must adjust these values to your environment:
-ssh_key_name        = ""        # Optional additional ssh key added to VPC instances.  A temporary ssh key will be added to all instances.
-resource_group_name = "Default" # YOUR resource group
+ssh_key_name        = ""         # Optional additional ssh key added to VPC instances.  A temporary ssh key will be added to all instances.
+resource_group_name = "feedback" # YOUR resource group
 
 # optionally change these
-basename   = "tvpc"     # change if you wish, maybe your initials
+basename   = "per"      # change if you wish, maybe your initials
 region     = "us-south" # change as desired
-datacenter = ""         # Value like dal10.  Only required to support PowerVS spokes
+datacenter = "dal10"
 
 # end of conifguration to begin part1 of the tutorial
 
@@ -20,12 +20,14 @@ enterprise_phantom_address_prefixes_in_transit = true
 # After changing this value re-apply all layers:  ./apply.sh : LAST_LAYER
 all_firewall = false
 
+# If following the tutorial do not initially modify the values below
 make_postgresql = true
-spoke_count_vpc     = 2 #set to 0 to remove spokes
-zones           = 3
-
+spoke_count_vpc = 0 #set to 0 to remove spokes
 # power configuration.  Number of spokes that will be power spokes.
-# spoke_count_power = 1
+# Example: if spoke_count=3 and power_spoke_count=2 then there will be 1 VPC spoke and 2 power spokes
+spoke_count_power = 1
+
+zones = 1
 
 # firewall_nlb is set to true to create a NLB that distributes load to the actual firewall-routers
 # If firewall_nlb s true set the number of firewall instances
@@ -38,6 +40,14 @@ test_lbs = false
 # vpn configuration - it is possible to simulate enterprise <> transit connectivity using vpn instead of the direct
 # link simulation using the vpn variable and turning off firewall.  Firewall's generally support vpn so it would be
 # unusual to configure both a VPC VPN gateway and a firewall so both are not supported.
-# vpn = true
-# firewall = false
+
+
+#VPN:
+vpn      = true
+firewall = false
+
+#Direct link simulation:
+#vpn      = false
+#firewall = true
+
 # enterprise_phantom_address_prefixes_in_transit = true

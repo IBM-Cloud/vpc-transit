@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2023-12-13T22:02:41.864Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="Z25ajrZeXtjrbbxd5vDp" version="22.0.3" type="device" pages="23">
+<mxfile host="Electron" modified="2023-12-15T14:21:42.982Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="-YfAa6-BM9wlhhjYfOUs" version="22.0.3" type="device" pages="23">
   <diagram name="vpn-overview" id="K-BbVwB0tSsEuf7Mb0wv">
     <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
@@ -651,16 +651,22 @@
           <mxGeometry x="-143" y="-472" width="805" height="490" as="geometry" />
         </mxCell>
         <mxCell id="KAIxgbsrkHdad3dWBSFc-3" value="&lt;span style=&quot;font-weight: normal;&quot;&gt;us-south&lt;/span&gt;" style="shape=mxgraph.ibm.box;prType=region;fontStyle=1;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=2;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
-          <mxGeometry x="-91" y="-445" width="744" height="452" as="geometry" />
+          <mxGeometry x="-98" y="-451" width="744" height="452" as="geometry" />
         </mxCell>
-        <mxCell id="KAIxgbsrkHdad3dWBSFc-4" value="Transit Hub" style="fontStyle=0;verticalAlign=top;align=center;spacingTop=-2;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=2;dashed=1;container=1;collapsible=0;expand=0;recursiveResize=0;shadow=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
-          <mxGeometry x="-56.4" y="-417" width="240" height="366" as="geometry" />
+        <mxCell id="KAIxgbsrkHdad3dWBSFc-7" value="&lt;b&gt;Spoke Power&lt;/b&gt;" style="fontStyle=0;verticalAlign=top;align=center;spacingTop=-2;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=2;dashed=1;container=0;collapsible=0;expand=0;recursiveResize=0;shadow=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
+          <mxGeometry x="280" y="-345" width="242" height="172" as="geometry" />
+        </mxCell>
+        <mxCell id="DtT9lMc432X_1YVfVdx5-1" value="DAL 10 (PER)&amp;nbsp; 10.1.1.0/24" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=1;spacing=-4;collapsible=0;expand=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
+          <mxGeometry x="285" y="-325" width="230" height="147" as="geometry" />
+        </mxCell>
+        <mxCell id="KAIxgbsrkHdad3dWBSFc-4" value="Transit Hub" style="fontStyle=0;verticalAlign=top;align=center;spacingTop=-2;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=2;dashed=1;container=0;collapsible=0;expand=0;recursiveResize=0;shadow=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
+          <mxGeometry x="-56.4" y="-433" width="240" height="382" as="geometry" />
+        </mxCell>
+        <mxCell id="DtT9lMc432X_1YVfVdx5-0" value="Zone 10.1.0.0/24" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=1;spacing=-4;collapsible=0;expand=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
+          <mxGeometry x="-54" y="-413" width="230" height="355" as="geometry" />
         </mxCell>
         <mxCell id="KAIxgbsrkHdad3dWBSFc-5" value="" style="fontStyle=1;verticalAlign=top;align=center;spacingTop=-2;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#4376BB;strokeWidth=1;dashed=0;container=0;collapsible=0;expand=0;recursiveResize=0;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
           <mxGeometry x="-39.4" y="-159" width="196" height="91" as="geometry" />
-        </mxCell>
-        <mxCell id="KAIxgbsrkHdad3dWBSFc-7" value="&lt;b&gt;Spoke Power&lt;/b&gt;" style="fontStyle=0;verticalAlign=top;align=center;spacingTop=-2;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=2;dashed=1;container=1;collapsible=0;expand=0;recursiveResize=0;shadow=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-1">
-          <mxGeometry x="280" y="-323" width="273" height="170" as="geometry" />
         </mxCell>
         <mxCell id="KAIxgbsrkHdad3dWBSFc-10" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=default;strokeColor=default;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontColor=default;endArrow=none;endFill=0;" edge="1" parent="KAIxgbsrkHdad3dWBSFc-1" target="KAIxgbsrkHdad3dWBSFc-14">
           <mxGeometry relative="1" as="geometry">
@@ -721,7 +727,7 @@
         <mxCell id="KAIxgbsrkHdad3dWBSFc-37" value="VPN" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#000000;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/VPNConnection.svg;container=0;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-34">
           <mxGeometry x="-30.000000000000007" y="-364" width="60" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="5Pguig5L2R7S4xjTBcFx-7" value="numbers" parent="KAIxgbsrkHdad3dWBSFc-0" />
+        <mxCell id="5Pguig5L2R7S4xjTBcFx-7" value="numbers" parent="KAIxgbsrkHdad3dWBSFc-0" visible="0" />
         <mxCell id="5Pguig5L2R7S4xjTBcFx-10" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeWidth=2;fontFamily=Tahoma;spacingBottom=4;spacingRight=2;strokeColor=#d3d3d3;fontSize=11;fontColor=default;" vertex="1" parent="5Pguig5L2R7S4xjTBcFx-7">
           <mxGeometry x="221" y="-308" width="20" height="20" as="geometry" />
         </mxCell>
@@ -737,7 +743,7 @@
         <mxCell id="5Pguig5L2R7S4xjTBcFx-9" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeWidth=2;fontFamily=Tahoma;spacingBottom=4;spacingRight=2;strokeColor=#d3d3d3;fontSize=11;fontColor=default;" vertex="1" parent="5Pguig5L2R7S4xjTBcFx-7">
           <mxGeometry x="-182" y="-363" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="KAIxgbsrkHdad3dWBSFc-38" value="dl" visible="0" parent="KAIxgbsrkHdad3dWBSFc-0" />
+        <mxCell id="KAIxgbsrkHdad3dWBSFc-38" value="dl" parent="KAIxgbsrkHdad3dWBSFc-0" />
         <mxCell id="KAIxgbsrkHdad3dWBSFc-39" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.router;fillColor=#F58534;gradientColor=none;fontFamily=Helvetica;fontSize=11;fontColor=default;" vertex="1" parent="KAIxgbsrkHdad3dWBSFc-38">
           <mxGeometry x="-264.4" y="-268" width="58" height="60" as="geometry" />
         </mxCell>
@@ -766,7 +772,7 @@
             <Array as="points">
               <mxPoint x="-222" y="-320" />
               <mxPoint x="6" y="-320" />
-              <mxPoint x="235" y="-252" />
+              <mxPoint x="182" y="-251" />
             </Array>
           </mxGeometry>
         </mxCell>

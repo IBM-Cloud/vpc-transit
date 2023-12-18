@@ -95,6 +95,7 @@ output "tg_gateway" {
 
 # put the key into the first power spoke (it will be visible in all spokes)
 resource "ibm_pi_key" "ssh_key_tmp" {
+  count                = length(module.spokes_power) == 0 ? 0 : 1
   pi_key_name          = local.settings.basename
   pi_ssh_key           = local.tls_public_key
   pi_cloud_instance_id = module.spokes_power[local.settings.spoke_count_vpc].power.guid
@@ -106,7 +107,7 @@ module "spokes_power_instances" {
   source       = "./power_test_instances_tf"
   settings     = local.settings
   power        = each.value
-  ssh_key_name = ibm_pi_key.ssh_key_tmp.pi_key_name
+  ssh_key_name = ibm_pi_key.ssh_key_tmp[0].pi_key_name
 }
 output "spokes_power_instances" {
   value = module.spokes_power_instances
