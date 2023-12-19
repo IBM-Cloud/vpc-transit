@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2023-12-15T14:21:42.982Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="-YfAa6-BM9wlhhjYfOUs" version="22.0.3" type="device" pages="23">
+<mxfile host="Electron" modified="2023-12-19T13:57:04.147Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="FTKNSW0RHsM17eY0euok" version="22.0.3" type="device" pages="22">
   <diagram name="vpn-overview" id="K-BbVwB0tSsEuf7Mb0wv">
     <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
@@ -1771,111 +1771,6 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="Copy of asymmetric" id="txMKh4c1goMZObGfQIKx">
-    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
-      <root>
-        <mxCell id="i16fGEHolgySYZkPw8UX-0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-1" parent="i16fGEHolgySYZkPw8UX-0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-2" value="IBM Cloud" style="shape=mxgraph.ibm.box;prType=cloud;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#4376BB;strokeWidth=3;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-174" y="-439" width="836" height="600" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-3" value="&lt;span style=&quot;font-weight: normal;&quot;&gt;us-south&lt;/span&gt;" style="shape=mxgraph.ibm.box;prType=region;fontStyle=1;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=2;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-109" y="-416" width="761" height="574" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-4" value="VPC Transit 10.*.0.0/24" style="shape=mxgraph.ibm.box;prType=vpc;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#4376BB;strokeWidth=2;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-20" y="-378" width="280" height="525" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-5" value="Zone 2 10.2.0.0/16&lt;br&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 192.168.1.0/24" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-13" y="-109" width="266" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-6" value="&lt;span style=&quot;font-weight: normal&quot;&gt;VPC Spoke dev 10.1.8.0/24&lt;/span&gt;" style="shape=mxgraph.ibm.box;prType=vpc;fontStyle=1;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#4376BB;strokeWidth=2;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="365" y="-378" width="280" height="525" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-7" value="Zone 1 10.1.8.0/24" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="401" y="-334" width="188" height="353" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-8" value="Zone 1 10.1.0.0/16&lt;br&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 192.168.0.0/24" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-13" y="-347" width="266" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-9" value="firewall&lt;br&gt;10.1.0.192/26" style="shape=mxgraph.ibm.box;prType=subnet;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E6F0E2;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;flipV=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-9" y="-295" width="115" height="135" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-10" value="Enterprise Network 192.168.0.0/16" style="shape=mxgraph.ibm.box;prType=enterprise;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#4376BB;strokeWidth=3;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-367" y="-439" width="183" height="600" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-11" value="Zone 0 192.168.0.0/26" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-351" y="-378" width="150" height="242" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-13" value="enterprise 192.168.0.4" style="image;html=1;image=img/lib/clip_art/computers/Server_Rack_128x128.png;noLabel=0;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-313" y="-268" width="80" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-14" value="public&amp;nbsp;10.1.8.208&lt;br&gt;publicIP&amp;nbsp;150.240.147.253" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;overflow=visible;noLabel=0;labelBackgroundColor=none;direction=south;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="455.5" y="-258" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-15" value="FW 10.1.0.196" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;overflow=visible;noLabel=0;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="28" y="-258" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-17" value="firewall&lt;br&gt;10.2.0.192/26" style="shape=mxgraph.ibm.box;prType=subnet;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E6F0E2;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;flipV=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-9" y="-57" width="115" height="135" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-20" value="FW 10.2.0.196" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;overflow=visible;noLabel=0;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="28" y="-20" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-21" value="Zone 1 192.168.1.0/26" style="shape=mxgraph.ibm.box;prType=zone;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E0E0E0;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-351" y="-130" width="150" height="242" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-22" value="enterprise 192.168.1.4" style="image;html=1;image=img/lib/clip_art/computers/Server_Rack_128x128.png;noLabel=0;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-313" y="-30" width="80" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-23" value="" style="sketch=0;points=[[0.5,0,0],[1,0.5,0],[0.5,1,0],[0,0.5,0],[0.145,0.145,0],[0.8555,0.145,0],[0.855,0.8555,0],[0.145,0.855,0]];verticalLabelPosition=bottom;html=1;verticalAlign=top;aspect=fixed;align=center;pointerEvents=1;shape=mxgraph.cisco19.rect;prIcon=router_with_firewall;fillColor=#FAFAFA;strokeColor=#005073;shadow=0;dashed=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=12;fontColor=black;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="73" y="-28" width="33" height="33" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-24" value="" style="sketch=0;points=[[0.5,0,0],[1,0.5,0],[0.5,1,0],[0,0.5,0],[0.145,0.145,0],[0.8555,0.145,0],[0.855,0.8555,0],[0.145,0.855,0]];verticalLabelPosition=bottom;html=1;verticalAlign=top;aspect=fixed;align=center;pointerEvents=1;shape=mxgraph.cisco19.rect;prIcon=router_with_firewall;fillColor=#FAFAFA;strokeColor=#005073;shadow=0;dashed=0;labelBackgroundColor=none;fontFamily=Helvetica;fontSize=12;fontColor=black;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="73" y="-269" width="33" height="33" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-25" value="" style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-97" y="-378" width="55" height="524" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-26" value="tgw-link" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/TransitGateway.svg;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="-98.57615384615386" y="-376" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-27" value="" style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="280.15" y="-378" width="55" height="524" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-28" value="tgw-spoke" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/TransitGateway.svg;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="278.5738461538461" y="-380" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="I9CMtGGmvkcGtXO_OKzb-1" value="private&amp;nbsp;10.1.8.154" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;overflow=visible;noLabel=0;labelBackgroundColor=none;direction=south;" parent="i16fGEHolgySYZkPw8UX-1" vertex="1">
-          <mxGeometry x="455.5" y="-125" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-31" value="prefixfix-enterprise" style="" parent="i16fGEHolgySYZkPw8UX-0" visible="0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-32" value="worker" parent="i16fGEHolgySYZkPw8UX-0" visible="0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-33" value="worker 10.1.0.0/26" style="shape=mxgraph.ibm.box;prType=subnet;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E6F0E2;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;flipV=0;" parent="i16fGEHolgySYZkPw8UX-32" vertex="1">
-          <mxGeometry x="121" y="-296" width="115" height="135" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-34" value="worker 10.2.0.0/26" style="shape=mxgraph.ibm.box;prType=subnet;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=#E6F0E2;rounded=0;whiteSpace=wrap;html=1;strokeColor=#00882B;strokeWidth=1;dashed=0;container=0;spacing=-4;collapsible=0;expand=0;recursiveResize=0;flipV=0;" parent="i16fGEHolgySYZkPw8UX-32" vertex="1">
-          <mxGeometry x="121" y="-58" width="115" height="135" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-35" value="transit 10.2.0.4" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-32" vertex="1">
-          <mxGeometry x="145" y="-21" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-36" value="transit 10.1.0.4" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=black;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;labelBackgroundColor=none;" parent="i16fGEHolgySYZkPw8UX-32" vertex="1">
-          <mxGeometry x="145" y="-259" width="60" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="i16fGEHolgySYZkPw8UX-37" value="asymmetric" parent="i16fGEHolgySYZkPw8UX-0" visible="0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-40" value="fix" parent="i16fGEHolgySYZkPw8UX-0" visible="0" />
-        <mxCell id="i16fGEHolgySYZkPw8UX-41" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=none;startFill=1;endArrow=classic;endFill=1;strokeColor=#66CC00;strokeWidth=2;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="i16fGEHolgySYZkPw8UX-40" edge="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-236.61990950226254" y="-188" as="sourcePoint" />
-            <Array as="points">
-              <mxPoint x="-72" y="-7" />
-            </Array>
-            <mxPoint x="458.6671842700025" y="-3.416407864998746" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
   <diagram name="asymmetric-spoke-fw" id="zntWaYXCX_n9N-96MutY">
     <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
@@ -2247,7 +2142,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="more-firewall" id="8ns39F4BWYpsM8zYYwsY">
-    <mxGraphModel dx="1426" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="iUqe0J4uobLouAGHSdKs-0" />
         <mxCell id="iUqe0J4uobLouAGHSdKs-1" parent="iUqe0J4uobLouAGHSdKs-0" />
@@ -2407,7 +2302,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="ha-firewall" id="0E4k38nMtcz4FXUrHy8Q">
-    <mxGraphModel dx="1426" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="HmvpbyNF2YNPgrqp-w1K-0" />
         <mxCell id="HmvpbyNF2YNPgrqp-w1K-1" value="vpc-layout" parent="HmvpbyNF2YNPgrqp-w1K-0" />
@@ -2680,7 +2575,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="evhzAzktzbsN_eWiEzyT" name="dns">
-    <mxGraphModel dx="1426" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" value="dns" parent="0" />
@@ -3030,7 +2925,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="transit-asym-bug" id="Mq3DE64AFx1-DiyVts_a">
-    <mxGraphModel dx="1426" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="KUw2RQwZQoWFwsyAlHlk-0" />
         <mxCell id="KUw2RQwZQoWFwsyAlHlk-1" parent="KUw2RQwZQoWFwsyAlHlk-0" />
@@ -3178,7 +3073,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="doug eppard" id="l5Ih6SjtUBUrPnL9IzA4">
-    <mxGraphModel dx="1426" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="1770" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="4l49yyHFQW4xyhoxqSnP-0" />
         <mxCell id="4l49yyHFQW4xyhoxqSnP-1" value="vpc-layout" parent="4l49yyHFQW4xyhoxqSnP-0" />
@@ -3478,7 +3373,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="enterprise-transit-firewall" id="qlEHPF9rZ2qHBS2hU7ur">
-    <mxGraphModel dx="1826" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="2170" dy="1543" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1050" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="QXQZV-EiehdTcNybKefC-0" />
         <mxCell id="QXQZV-EiehdTcNybKefC-1" value="vpc-layout" style="" parent="QXQZV-EiehdTcNybKefC-0" />
