@@ -164,7 +164,10 @@ def all_instances_not_power():
     return [Instance(**worker) for worker in workers]
 
 def all_instances():
-    workers = [worker for spoke in tf_dirs.power_tf.spokes_power_instances.values() for worker in spoke["workers"].values()]
+    if hasattr(tf_dirs.power_tf, "spokes_power_instances"):
+        workers = [worker for spoke in tf_dirs.power_tf.spokes_power_instances.values() for worker in spoke["workers"].values()]
+    else:
+        workers = []
     return [Instance(**worker) for worker in workers] + all_instances_not_power()
 
 def add_curl_to_test_dns(curls):

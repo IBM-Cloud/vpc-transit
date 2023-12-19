@@ -28,7 +28,7 @@ module "transit" {
   source                    = "../modules/vpc"
   name                      = "${local.settings.basename}-transit"
   settings                  = local.settings
-  zones_address_prefixes    = [for zone_number, zone_cidr in local.cloud_zones_cidr : [zone_cidr]]
+  zones_address_prefixes    = [for zone_number, zone_cidr in local.transit_zones : [zone_cidr]]
   zones_subnets             = local.zones_subnets
   make_firewall_route_table = true
 }
