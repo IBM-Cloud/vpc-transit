@@ -19,12 +19,11 @@ firewall = false
 #firewall = true
 
 # do not change these --------------------------------
-spoke_count_vpc                                = 0
-spoke_count_power                              = 1
-zones                                          = 1
-enterprise_phantom_address_prefixes_in_transit = true
-all_firewall                                   = false
-make_postgresql                                = true
-firewall_nlb                                   = false
-number_of_firewalls_per_zone                   = 1
-test_lbs                                       = false
+spoke_count_vpc              = 0
+spoke_count_power            = 1
+zones                        = 1
+all_firewall                 = false
+make_postgresql              = true
+firewall_nlb                 = false
+number_of_firewalls_per_zone = 1
+test_lbs                     = false

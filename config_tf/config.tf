@@ -141,8 +141,7 @@ output "spokes_zones_power" {
 
 output "settings" {
   value = {
-    myip = data.external.ifconfig_me.result.ip # replace with your IP if ifconfig.me does not work
-    # todo used for security groups seems off
+    myip              = data.external.ifconfig_me.result.ip # replace with your IP if ifconfig.me does not work
     cloud_cidr        = local.cloud_cidr
     cloud_zones_cidr  = local.cloud_zones_cidr
     enterprise_cidr   = local.enterprise_cidr
@@ -158,26 +157,25 @@ output "settings" {
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
-    zones                                          = local.zones
-    region                                         = var.region
-    datacenter                                     = var.datacenter
-    resource_group_name                            = var.resource_group_name
-    resource_group_id                              = data.ibm_resource_group.group.id
-    enterprise_phantom_address_prefixes_in_transit = var.enterprise_phantom_address_prefixes_in_transit
-    vpn                                            = var.vpn
-    vpn_route_based                                = var.vpn_route_based
-    ssh_key_ids                                    = local.ssh_key_ids
-    ssh_key_name                                   = var.ssh_key_name
-    basename                                       = var.basename
-    image_id                                       = data.ibm_is_image.ubuntu.id
-    profile                                        = var.profile
-    make_redis                                     = var.make_redis
-    make_postgresql                                = var.make_postgresql
-    make_cos                                       = var.make_cos
-    firewall                                       = var.firewall
-    firewall_nlb                                   = var.firewall_nlb
-    number_of_firewalls_per_zone                   = var.number_of_firewalls_per_zone
-    all_firewall                                   = var.all_firewall
-    test_lbs                                       = var.test_lbs
+    zones                        = local.zones
+    region                       = var.region
+    datacenter                   = var.datacenter
+    resource_group_name          = var.resource_group_name
+    resource_group_id            = data.ibm_resource_group.group.id
+    vpn                          = var.vpn
+    vpn_route_based              = var.vpn_route_based
+    ssh_key_ids                  = local.ssh_key_ids
+    ssh_key_name                 = var.ssh_key_name
+    basename                     = var.basename
+    image_id                     = data.ibm_is_image.ubuntu.id
+    profile                      = var.profile
+    make_redis                   = var.make_redis
+    make_postgresql              = var.make_postgresql
+    make_cos                     = var.make_cos
+    firewall                     = var.firewall
+    firewall_nlb                 = var.firewall_nlb
+    number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
+    all_firewall                 = var.all_firewall
+    test_lbs                     = var.test_lbs
   }
 }

@@ -55,11 +55,11 @@ locals {
     ]]
   ] : []
 
-  # todo
   # Transit will allow the transit gateway to select the spoke zone based on the spoke destination address.
   # The spoke must route traffic directly to the transit zone of the transit destination (the default).
   # But, above cloud addresses for the spoke was adjusted to stay in the spoke's source zone
-  # more exact routes are required to override this for the transit.
+  # more exact routes are required to override this for spoke traffic sent to the transit.
+  # ingress routing in the transit will route to the firewall
   spoke_to_transit_zone = [for spoke_number, spoke_vpc in local.spokes.vpcs : [
     for spoke_zone_number, spoke_zone in spoke_vpc.zones : [
       for transit_zone_number, transit in local.firewall.zones : {
@@ -70,9 +70,6 @@ locals {
         destination   = local.transit_zones[transit_zone_number].cidr
         action        = "delegate"
         next_hop      = "0.0.0.0"
-        # todo
-        #action        = "deliver"
-        #next_hop      = transit.firewall_ip
     }]
   ]]
 

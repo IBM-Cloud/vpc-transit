@@ -5,14 +5,6 @@ variable "power" {
 }
 variable "ssh_key_name" {}
 
-# todo
-output "inputs" {
-  value = {
-    settings = var.settings
-    power    = var.power
-  }
-}
-
 resource "ibm_pi_image" "testacc_image" {
   pi_image_name        = "SLES15-SP4"
   pi_cloud_instance_id = var.power.guid
@@ -61,8 +53,6 @@ output "workers" {
       subnet_name          = var.power.network_private.pi_network_name
       fip                  = local.networks["${var.power.name}-public"].external_ip
       primary_ipv4_address = local.networks["${var.power.name}-private"].ip_address
-      // TODO
-      zone = "us-south-1"
     }
   }
 }

@@ -11,11 +11,8 @@ variable "spoke_count_vpc" {
   type = number
 }
 variable "spoke_count_power" {
-  type = number
+  type    = number
   default = 0
-}
-variable "enterprise_phantom_address_prefixes_in_transit" {
-  type = bool
 }
 variable "make_redis" {
   type    = bool
