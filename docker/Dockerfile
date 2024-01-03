@@ -17,4 +17,6 @@ RUN  pip install -r /tmp/requirements.txt \
   && apt update \
   && apt-get install terraform \
   && terraform -help \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && curl -fsSL https://clis.cloud.ibm.com/install/linux | sh \
+  && ibmcloud plugin install is

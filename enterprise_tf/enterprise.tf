@@ -18,7 +18,7 @@ locals {
     subnet_number = subnet_number # subnet in zone: 0,1,2,3
     zone          = subnet.zone   # us-south-1
     cidr          = subnet.cidr
-    name          = "${local.settings.basename}-enterprise-z${zone_number + 1}-s${subnet_number}"
+    name          = subnet.name
   }]]
 }
 

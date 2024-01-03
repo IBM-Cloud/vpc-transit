@@ -20,7 +20,7 @@ locals {
     subnet_number = subnet_number # subnet in zone: 0,1,2,3
     zone          = subnet.zone   # us-south-1
     cidr          = subnet.cidr
-    name          = "${local.settings.basename}-transit-z${zone_number + 1}-s${subnet_number}"
+    name          = subnet.name
   }]]
 }
 
@@ -32,7 +32,6 @@ module "transit" {
   zones_subnets             = local.zones_subnets
   make_firewall_route_table = true
 }
-
 
 output "vpc" {
   value = module.transit.vpc
