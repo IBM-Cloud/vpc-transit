@@ -88,6 +88,7 @@ resource "ibm_is_instance" "firewall" {
     :INPUT ACCEPT
     :OUTPUT ACCEPT
     :FORWARD ACCEPT
+    -A FORWARD -j LOG --log-prefix "fw-router: "
     COMMIT
     EOF
     iptables-restore /etc/iptables.all

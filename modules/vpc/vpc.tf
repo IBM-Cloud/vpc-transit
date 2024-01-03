@@ -10,7 +10,14 @@ vpc
 variable "name" {}
 variable "settings" {}
 variable "zones_address_prefixes" {} # [[{zone: "us-south-1", cidr = "10.0.0,0/16}, ...], []]"
-
+/*
+  zones_subnets = [for zone_number, zone in var.zones : [for subnet_number, subnet in zone.subnets : {
+    subnet_number = subnet_number # subnet in zone: 0,1,2,3
+    zone          = subnet.zone   # us-south-1
+    cidr          = subnet.cidr
+    name          = "z${subnet.zone_number}-s${subnet.subnet_number}"
+  }]]
+*/
 variable "zones_subnets" {} # zones is a list of both address_prefixes and subnets
 
 # Make a firewall route table and put the firewall subnets into the route table.  Delegate to the VPC.
@@ -48,7 +55,7 @@ resource "ibm_is_vpc_routing_table" "location" {
   vpc   = ibm_is_vpc.location.id
 }
 
-# todo default for made fw zone
+# firewall subnets delegate all routes.  default vpc routing is needed for the firewall.
 resource "ibm_is_vpc_routing_table_route" "transit_policybased" {
   for_each      = var.make_firewall_route_table ? { for zone_number, zone in local.zones : zone_number => zone } : {}
   vpc           = ibm_is_vpc.location.id
@@ -77,7 +84,7 @@ resource "ibm_is_subnet" "locations" {
   zone            = each.value.zone
   ipv4_cidr_block = each.value.cidr
   resource_group  = local.resource_group_id
-  # todo the make_firewall_route_table should be make the new default route table for all but FW?
+  # subnets get the default egress routing table provided by the VPC, except the firewall subnet
   routing_table = (var.make_firewall_route_table && each.value.subnet_number == var.settings.subnet_fw) ? ibm_is_vpc_routing_table.location[0].routing_table : null
 }
 
@@ -100,9 +107,6 @@ resource "ibm_is_security_group_rule" "inbound_remote_cidr" {
 locals {
   output_zones = [for zone_number, subnets in var.zones_subnets : {
     subnets = [for subnet_number, subnet in subnets : ibm_is_subnet.locations[subnet.name]]
-    /*
-    address_prefixes = [for address_prefix_number, address_prefix in zone.address_prefixes : ibm_is_vpc_address_prefix.locations["z${zone_number}-s${address_prefix_number}"]]
-    */
   }]
 }
 
@@ -117,9 +121,7 @@ output "vpc" {
     crn                    = ibm_is_vpc.location.crn
     name                   = ibm_is_vpc.location.name
     default_security_group = ibm_is_vpc.location.default_security_group
-    # todo routing table is the default VPC egress routing table, not the one created for firewall
-    #routing_table = var.make_firewall_route_table ? ibm_is_vpc_routing_table.location[0].routing_table : data.ibm_is_vpc_default_routing_table.location.default_routing_table
-    routing_table = data.ibm_is_vpc_default_routing_table.location.default_routing_table
+    routing_table          = data.ibm_is_vpc_default_routing_table.location.default_routing_table
     zones = [for zone in local.output_zones : {
       subnets = [for subnet in zone.subnets : {
         id              = subnet.id
@@ -128,14 +130,6 @@ output "vpc" {
         zone            = subnet.zone
         crn             = subnet.crn
       }]
-      /* todo
-      address_prefixes = [for address_prefix in zone.address_prefixes : {
-        id   = address_prefix.id
-        name = address_prefix.name
-        cidr = address_prefix.cidr
-        zone = address_prefix.zone
-      }]
-      */
       }
     ]
   }

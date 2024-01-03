@@ -7,8 +7,20 @@ The hub will also be connected to an enterprise data center. A hub and spoke VPC
 
 
 # TLDR;
-Insure python virtual environment and terraform are available or docker as described in the prerequisite section below. 
-Terraform and a python environment are required on your desktop development environment. In the IBM Cloud you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check) and have a VPC ssh key.
+Insure python virtual environment and terraform are available or use docker as described in the prerequisite section below. 
+Terraform and a python environment are required on your desktop development environment. In the IBM Cloud you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check).
+
+## Prerequisites
+
+Terraform will use your API key:
+```sh
+export IBMCLOUD_API_KEY=YourAPIKEy
+```
+
+The ibmcloud cli must be available and have the `is` plugin 9.0.0 or later installed:
+```sh
+ibmcloud plugin install is
+```
 
 ```sh
 git clone https://github.com/IBM-Cloud/vpc-transit
@@ -20,11 +32,6 @@ Make required changes to terraform.tfvars
 
 ```sh
 edit config_tf/terraform.tfvars
-```
-
-Terraform will use your API key:
-```sh
-export IBMCLOUD_API_KEY=YourAPIKEy
 ```
 
 Apply the layers described in the tutorial. First get a list of the layers:

@@ -21,19 +21,6 @@ locals {
   settings          = var.settings
   tags              = var.settings.tags
   enterprise_zones  = local.config_tf.enterprise_zones
-  address_prefixes  = local.settings.enterprise_phantom_address_prefixes_in_transit ? local.enterprise_zones : []
-}
-
-#----------------------------------------------------------------------
-# NOTE: Add additional address prefixes in the transit for the enterprise to allow the
-# spokes to learn enterprise routes via transit gateways.  Note this puts the enterprise
-# CIDRs in a cloud zone.
-resource "ibm_is_vpc_address_prefix" "locations" {
-  for_each = { for k, zone in local.address_prefixes : k => zone }
-  name     = "${local.settings.basename}phantom-enterprise${each.key}"
-  vpc      = local.transit_vpc.id
-  zone     = each.value.zone
-  cidr     = each.value.cidr
 }
 
 # put a vpn appliance in each zone of the enterprise

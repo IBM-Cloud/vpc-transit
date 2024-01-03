@@ -139,6 +139,4 @@ resource "ibm_is_lb_listener" "worker" {
   default_pool = ibm_is_lb_pool.worker.id
   protocol     = "tcp"
   port         = 80
-  #port_min         = 1
-  #port_max         = 65535
 }

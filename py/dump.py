@@ -72,8 +72,9 @@ def dump_test_instances(tf_dirs):
     dump_vpc_instances("transit", tf_dirs.test_instances_tf.transit, tf_dirs.transit_tf.vpc)
     for spoke_number, spoke in tf_dirs.test_instances_tf.spokes.items():
       dump_vpc_instances(f"spoke{spoke_number}", spoke, tf_dirs.spokes_tf.vpcs[int(spoke_number)])
-    for spoke_number, spoke in tf_dirs.power_tf.spokes_power_instances.items():
-      dump_power_instances(f"spoke{spoke_number}", spoke, tf_dirs.power_tf.powers[int(spoke_number) - len(tf_dirs.spokes_tf.vpcs)])
+    if hasattr(tf_dirs.power_tf, "spokes_power_instances"):
+      for spoke_number, spoke in tf_dirs.power_tf.spokes_power_instances.items():
+        dump_power_instances(f"spoke{spoke_number}", spoke, tf_dirs.power_tf.powers[int(spoke_number) - len(tf_dirs.spokes_tf.vpcs)])
 
 def dump_firewall(tf_dirs):
     print("firewalls in transit")

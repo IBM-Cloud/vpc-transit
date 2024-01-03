@@ -9,11 +9,6 @@ datacenter = ""         # Value like dal10.  Only required to support PowerVS sp
 
 # end of conifguration to begin part1 of the tutorial
 
-# In part 1 of the tutorial enterprise phantom address prefixes are put in the transit for the 
-# initial steps.  But in the final step these are removed and replaced with egress routing in spokes.
-# But in part 2 to allow VPE enterprise -> spoke to work they are added back
-enterprise_phantom_address_prefixes_in_transit = true
-
 # In part 1 of the tutorial only enterprise <-> spoke traffic flows through the firewall-router (all_firewall = false).
 # In part 2 of the tutorial set all_firewall to true to also route
 # enterprise <-> transit, spoke <-> spoke and spoke <-> transit through the firewall (all_firewall = true).
@@ -21,7 +16,7 @@ enterprise_phantom_address_prefixes_in_transit = true
 all_firewall = false
 
 make_postgresql = true
-spoke_count_vpc     = 2 #set to 0 to remove spokes
+spoke_count_vpc = 2 #set to 0 to remove spokes
 zones           = 3
 
 # power configuration.  Number of spokes that will be power spokes.
@@ -40,4 +35,3 @@ test_lbs = false
 # unusual to configure both a VPC VPN gateway and a firewall so both are not supported.
 # vpn = true
 # firewall = false
-# enterprise_phantom_address_prefixes_in_transit = true

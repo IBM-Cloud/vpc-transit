@@ -50,7 +50,7 @@ locals {
   zones             = var.zones
   # Each VPC is first broken into zones indexed 0..2
   # the zone is the first break down.  Terraform will refer to them as zone 0, 1, 2 (1 and 2 optional)
-  # They cidr blocks are 1,2,3
+  # The cidr blocks are 1,2,3
   # zone 0 - 10.1.0.0/16 us-south-1
   # zone 1 - 10.2.0.0/16 us-south-2
   # zone 2 - 10.3.0.0/16 us-south-3
@@ -60,6 +60,12 @@ locals {
   subnet_dns    = 1 # dns custom resolvers
   subnet_vpe    = 2 # vpc private endpoint gateways
   subnet_fw     = 3 # firewall (transit only)
+  subnet_names = [
+    "worker",
+    "dns",
+    "vpe",
+    "fw"
+  ]
 
   # enterprise zones are the full cidr block for each zone: 192.168.z.0/24
   # enterprise zone subnets for the two subnets in each zone
@@ -68,10 +74,11 @@ locals {
     cidr = cidrsubnet(local.enterprise_cidr, 8, zone_number)
     zone = "${var.region}-${zone_number + 1}"
   }]
-  enterperise_zone_subnets = [for zone_cidr in local.enterprise_zone_cidrs : [
-    for s in [local.subnet_worker, local.subnet_dns] : {
+  enterprise_zone_subnets = [for zone_number, zone_cidr in local.enterprise_zone_cidrs : [
+    for subnet_number, s in [local.subnet_worker, local.subnet_dns] : {
       cidr = cidrsubnet(zone_cidr.cidr, 1, s)
       zone = zone_cidr.zone
+      name = "${var.basename}-enterprise-z${zone_number + 1}-${local.subnet_names[subnet_number]}"
   }]]
 }
 
@@ -83,10 +90,9 @@ output "tls_public_key" {
 # zones has the description for each zone.  subnets, address prefixes, entire cidr block
 output "enterprise_zones" {
   value = [for zone_number, zone_cidr in local.enterprise_zone_cidrs : {
-    zone             = zone_cidr.zone
-    cidr             = zone_cidr.cidr
-    subnets          = local.enterperise_zone_subnets[zone_number]
-    address_prefixes = local.enterperise_zone_subnets[zone_number] # todo
+    zone    = zone_cidr.zone
+    cidr    = zone_cidr.cidr
+    subnets = local.enterprise_zone_subnets[zone_number]
   }]
 }
 
@@ -100,9 +106,10 @@ locals {
     zone = "${var.region}-${zone_number + 1}"
   }]
 
-  # vpcs is used instead of spokes since it includes transit and all the spokes
-  # transit = vpcs[0] and spokes[0..2] = vpcs[1..3]
-  cloud_vpcs_zones_cidrs = [for i in range(local.spoke_count + 1) : [
+  # vpcs[0] = spoke0
+  # vpcs[x] = spokenx
+  # vpcs[15] = transit
+  cloud_vpcs_zones_cidrs = [for i in range(16) : [
     for zone_cidr in local.cloud_zones_cidr : {
       cidr = cidrsubnet(zone_cidr.cidr, 8, i)
       zone = zone_cidr.zone
@@ -110,39 +117,45 @@ locals {
 
   # cloud_vpcs_zones[spoke][zone][subnet_worker] - subnet for workers in zone
   # cloud_vpcs_zones[*][zone][subnet_dns] - all subnets (in all zones) available for dns resolvers
-  cloud_vpcs_zones = [for zone_ciders in local.cloud_vpcs_zones_cidrs : [
-    for zone_cidr in zone_ciders : {
+  cloud_vpcs_zones = [for vpc_number, zone_ciders in local.cloud_vpcs_zones_cidrs : [
+    for zone_number, zone_cidr in zone_ciders : {
       zone = zone_cidr.zone
       cidr = zone_cidr.cidr
       subnets = [for subnet in range(4) : {
         cidr = cidrsubnet(zone_cidr.cidr, 2, subnet)
         zone = zone_cidr.zone
+        name = vpc_number == length(local.cloud_vpcs_zones_cidrs) - 1 ? (
+          "${var.basename}-transit-z${zone_number + 1}-${local.subnet_names[subnet]}"
+          ) : (
+          "${var.basename}-spoke${vpc_number}-z${zone_number + 1}-${local.subnet_names[subnet]}"
+        )
       }]
   }]]
 }
 
+# highest vpc is transit
 output "transit_zones" {
-  value = local.cloud_vpcs_zones[0]
+  value = local.cloud_vpcs_zones[length(local.cloud_vpcs_zones) - 1]
 }
 
+# spoke vpc match the spoke number 0..n
 output "spokes_zones" {
-  value = [for spoke in range(local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
+  value = [for spoke in range(local.spoke_count) : local.cloud_vpcs_zones[spoke]]
 }
 
 # VPCs start at spoke0 consuming CIDR blocks following the transit
 output "spokes_zones_vpc" {
-  value = [for spoke in range(0, local.spoke_count_vpc) : local.cloud_vpcs_zones[spoke + 1]]
+  value = [for spoke in range(0, local.spoke_count_vpc) : local.cloud_vpcs_zones[spoke]]
 }
 
 # Powers start after the VPCS consuming CIDR blocks following the VPCs
 output "spokes_zones_power" {
-  value = [for spoke in range(local.spoke_count_vpc, local.spoke_count) : local.cloud_vpcs_zones[spoke + 1]]
+  value = [for spoke in range(local.spoke_count_vpc, local.spoke_count) : local.cloud_vpcs_zones[spoke]]
 }
 
 output "settings" {
   value = {
-    myip = data.external.ifconfig_me.result.ip # replace with your IP if ifconfig.me does not work
-    # todo used for security groups seems off
+    myip              = data.external.ifconfig_me.result.ip # replace with your IP if ifconfig.me does not work
     cloud_cidr        = local.cloud_cidr
     cloud_zones_cidr  = local.cloud_zones_cidr
     enterprise_cidr   = local.enterprise_cidr
@@ -158,26 +171,25 @@ output "settings" {
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
-    zones                                          = local.zones
-    region                                         = var.region
-    datacenter                                     = var.datacenter
-    resource_group_name                            = var.resource_group_name
-    resource_group_id                              = data.ibm_resource_group.group.id
-    enterprise_phantom_address_prefixes_in_transit = var.enterprise_phantom_address_prefixes_in_transit
-    vpn                                            = var.vpn
-    vpn_route_based                                = var.vpn_route_based
-    ssh_key_ids                                    = local.ssh_key_ids
-    ssh_key_name                                   = var.ssh_key_name
-    basename                                       = var.basename
-    image_id                                       = data.ibm_is_image.ubuntu.id
-    profile                                        = var.profile
-    make_redis                                     = var.make_redis
-    make_postgresql                                = var.make_postgresql
-    make_cos                                       = var.make_cos
-    firewall                                       = var.firewall
-    firewall_nlb                                   = var.firewall_nlb
-    number_of_firewalls_per_zone                   = var.number_of_firewalls_per_zone
-    all_firewall                                   = var.all_firewall
-    test_lbs                                       = var.test_lbs
+    zones                        = local.zones
+    region                       = var.region
+    datacenter                   = var.datacenter
+    resource_group_name          = var.resource_group_name
+    resource_group_id            = data.ibm_resource_group.group.id
+    vpn                          = var.vpn
+    vpn_route_based              = var.vpn_route_based
+    ssh_key_ids                  = local.ssh_key_ids
+    ssh_key_name                 = var.ssh_key_name
+    basename                     = var.basename
+    image_id                     = data.ibm_is_image.ubuntu.id
+    profile                      = var.profile
+    make_redis                   = var.make_redis
+    make_postgresql              = var.make_postgresql
+    make_cos                     = var.make_cos
+    firewall                     = var.firewall
+    firewall_nlb                 = var.firewall_nlb
+    number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
+    all_firewall                 = var.all_firewall
+    test_lbs                     = var.test_lbs
   }
 }

@@ -2,13 +2,6 @@
 # - firewall instances and possibly associated network load balancer
 # - vpc ingress route table and routes
 
-
-# todo remove
-# - vpc address filter to advertise routes through the transit vpc
-
-# todo
-# - prefix filters to avoid leaking the address filters
-
 data "terraform_remote_state" "config" {
   backend = "local"
 
@@ -50,6 +43,7 @@ locals {
   settings          = local.config_tf.settings
   provider_region   = local.settings.region
   tags              = local.settings.tags
+  cloud_zones_cidr  = local.settings.cloud_zones_cidr
   transit_vpc       = data.terraform_remote_state.transit.outputs.vpc
   enterprise_zones  = local.config_tf.enterprise_zones
   transit_zones     = local.config_tf.transit_zones
@@ -126,20 +120,6 @@ module "transit_zones" {
 }
 
 #----------------------------------------------------------------------
-# NOTE: Add additional address prefixes in the transit for the enterprise to allow the
-# spokes to learn enterprise routes via transit gateways
-locals {
-  address_prefixes = local.settings.enterprise_phantom_address_prefixes_in_transit ? local.enterprise_zones : []
-}
-resource "ibm_is_vpc_address_prefix" "locations" {
-  for_each = { for k, zone in local.address_prefixes : k => zone }
-  name     = "${local.settings.basename}phantom-enterprise${each.key}"
-  vpc      = local.transit_vpc.id
-  zone     = each.value.zone
-  cidr     = each.value.cidr
-}
-
-#----------------------------------------------------------------------
 # NOTE: route traffic into the firewall.  The transit gateway is choosing the zone based on the destination address prefix.Traffic enterprise -> spokes through enterprise <-> transit gateway is routed directly to the firewall
 # in same zone as the enterprise
 resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
@@ -150,37 +130,45 @@ resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
   route_vpc_zone_ingress        = false
 }
 
+resource "null_resource" "vpc-routing-table-update" {
+  triggers = {
+    path_module   = path.module
+    vpc           = local.transit_vpc.id
+    routing_table = ibm_is_vpc_routing_table.transit_tgw_ingress.routing_table
+    region        = local.settings.region
+  }
+  provisioner "local-exec" {
+    command = <<-EOS
+      vpc=${self.triggers.vpc} \
+      routing_table=${self.triggers.routing_table} \
+      region=${self.triggers.region} \
+      ${self.triggers.path_module}/../../bin/vpc-routing-table-update.sh create
+    EOS
+  }
+}
+
 locals {
   # from the spokes into the transit destine for enterprise.  The transit VPC zone is determined
   # by either the egress route at the spoke (if provided) or by the matching address prefix in the transit vpc.
   # Either way the enterprise cidr in a zone are routed to the firewall in the transit VPC zone
   spokes_to_enterprise = [for zone_number, transit_zone in local.transit_zones : {
-    name = "z${transit_zone.zone}-to-enterprise"
-    zone = transit_zone.zone
-    # todo cidr        = local.settings.enterprise_cidr
-    cidr        = "0.0.0.0/0"
+    name        = "z${transit_zone.zone}-to-enterprise"
+    zone        = transit_zone.zone
+    cidr        = local.settings.enterprise_cidr
     zone_number = zone_number
     }
   ]
 
-  /*
-  # From the enterprise to the spokes.  Avoid matching the transit VPC zones by creating a route for
-  # each spoke zone.  The Transit Gateway will determine the transit VPC zone based on the spoke
-  # address prefixes.  Select the firewall (zone_number) in the transit zone.
-  enterprise_to_spokes = flatten([for spoke, zones in local.spokes_zones : [
-    for zone_number, spoke_zone in zones : {
-      name        = "z${spoke_zone.zone}-to-spoke-${zone_number}"
-      zone        = spoke_zone.zone
-      cidr        = spoke_zone.cidr
-      zone_number = zone_number
+  # zone specific routes.
+  zone_ingress_routes = [for zone_number, zone_cidr in local.cloud_zones_cidr : {
+    name        = "z${zone_number}-entire-zone"
+    zone        = zone_cidr.zone
+    cidr        = zone_cidr.cidr
+    zone_number = zone_number
     }
-  ]])
-  */
+  ]
 
-  # todo
-  # routes = flatten(concat(local.enterprise_to_spokes, local.spokes_to_enterprise))
-  routes = flatten(local.spokes_to_enterprise)
-
+  routes = flatten(concat(local.spokes_to_enterprise, local.zone_ingress_routes))
 }
 
 resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
@@ -193,6 +181,28 @@ resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
   action        = "deliver"
   next_hop      = module.transit_zones[each.value.zone_number].firewall_ip
 }
+
+resource "null_resource" "vpc-routing-table-route-create" {
+  for_each = ibm_is_vpc_routing_table_route.transit_tgw_ingress
+  triggers = {
+    path_module   = path.module
+    vpc           = each.value.vpc
+    routing_table = each.value.routing_table
+    route         = each.value.route_id
+    region        = local.settings.region
+  }
+  provisioner "local-exec" {
+    command = <<-EOS
+      vpc=${self.triggers.vpc} \
+      routing_table=${self.triggers.routing_table} \
+      route=${self.triggers.route} \
+      region=${self.triggers.region} \
+      ${self.triggers.path_module}/../../bin/vpc-routing-table-route-update.sh create
+    EOS
+  }
+}
+
+
 
 locals {
   egress_to_firewall = [for zone_number, firewall in local.firewall_zones : {
