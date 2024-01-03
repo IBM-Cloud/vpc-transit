@@ -135,11 +135,13 @@ resource "null_resource" "vpc-routing-table-update" {
     path_module   = path.module
     vpc           = local.transit_vpc.id
     routing_table = ibm_is_vpc_routing_table.transit_tgw_ingress.routing_table
+    region        = local.settings.region
   }
   provisioner "local-exec" {
     command = <<-EOS
       vpc=${self.triggers.vpc} \
       routing_table=${self.triggers.routing_table} \
+      region=${self.triggers.region} \
       ${self.triggers.path_module}/../../bin/vpc-routing-table-update.sh create
     EOS
   }
@@ -187,12 +189,14 @@ resource "null_resource" "vpc-routing-table-route-create" {
     vpc           = each.value.vpc
     routing_table = each.value.routing_table
     route         = each.value.route_id
+    region        = local.settings.region
   }
   provisioner "local-exec" {
     command = <<-EOS
       vpc=${self.triggers.vpc} \
       routing_table=${self.triggers.routing_table} \
       route=${self.triggers.route} \
+      region=${self.triggers.region} \
       ${self.triggers.path_module}/../../bin/vpc-routing-table-route-update.sh create
     EOS
   }
