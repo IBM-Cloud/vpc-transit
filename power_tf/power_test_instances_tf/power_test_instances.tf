@@ -40,6 +40,24 @@ resource "ibm_pi_instance" "worker" {
     network_id = var.power.network_public.network_id
   }
 }
+output "ibm_pi_instance_worker" {
+  value = {
+    pi_memory        = "4"
+    pi_processors    = "2"
+    pi_instance_name = var.power.name
+    pi_proc_type     = "shared"
+    pi_image_id      = ibm_pi_image.testacc_image.image_id
+    # pi_key_pair_name     = ibm_pi_key.ssh_key_tmp.pi_key_name
+    pi_key_pair_name     = var.ssh_key_name
+    pi_sys_type          = "s922"
+    pi_cloud_instance_id = var.power.guid
+    pi_pin_policy        = "none"
+    pi_storage_type      = "tier3"
+    pi_network_private   = var.power.network_private.network_id
+    pi_network_public    = var.power.network_public.network_id
+  }
+}
+
 
 locals {
   networks = { for i, network in ibm_pi_instance.worker.pi_network : network.network_name => network }

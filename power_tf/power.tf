@@ -32,7 +32,6 @@ locals {
   config_tf          = data.terraform_remote_state.config.outputs
   tls_public_key     = local.config_tf.tls_public_key
   settings           = local.config_tf.settings
-  spokes_zones       = local.config_tf.spokes_zones
   spokes_zones_power = local.config_tf.spokes_zones_power
   tags               = local.settings.tags
   transit_spoke_tgw  = data.terraform_remote_state.transit_spoke_tgw.outputs
@@ -44,23 +43,16 @@ locals {
 
   provider_region = local.settings.region
   datacenter      = local.settings.datacenter
-
-  zones_subnets = [for spoke_number, spokes_zones in local.spokes_zones : [for zone_number, zone in spokes_zones : [for subnet_number, subnet in zone.subnets : {
-    subnet_number = subnet_number # subnet in zone: 0,1,2,3
-    zone          = subnet.zone   # us-south-1
-    cidr          = subnet.cidr
-    name          = "${local.settings.basename}-spoke${spoke_number}-z${zone_number + 1}-s${subnet_number}"
-  }]]]
 }
 
 # Power spokes indexed by spoke number (these start counting after the vpc spokes)
 module "spokes_power" {
-  for_each      = { for spoke, zones in local.spokes_zones_power : spoke + local.settings.spoke_count_vpc => zones }
-  source        = "../modules/power"
-  name          = "${local.settings.basename}-spoke${each.key}"
-  settings      = local.settings
-  zones_subnets = local.zones_subnets[each.key]
-  dns_ips       = local.transit_dns_ips
+  for_each       = { for spoke, zones in local.spokes_zones_power : spoke + local.settings.spoke_count_vpc => zones }
+  source         = "../modules/power"
+  name           = "${local.settings.basename}-spoke${each.key}"
+  settings       = local.settings
+  private_subnet = each.value[0].subnets[0] // the private subnet for the power vs
+  dns_ips        = local.transit_dns_ips
 }
 
 output "powers" {

@@ -140,11 +140,6 @@ output "transit_zones" {
 
 # spoke vpc match the spoke number 0..n
 output "spokes_zones" {
-  value = [for spoke in range(local.spoke_count) : local.cloud_vpcs_zones[spoke]]
-}
-
-# VPCs start at spoke0 consuming CIDR blocks following the transit
-output "spokes_zones_vpc" {
   value = [for spoke in range(0, local.spoke_count_vpc) : local.cloud_vpcs_zones[spoke]]
 }
 

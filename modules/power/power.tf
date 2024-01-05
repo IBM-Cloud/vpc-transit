@@ -1,10 +1,10 @@
 variable "name" {}
 variable "settings" {}
-variable "zones_subnets" {}
+variable "private_subnet" {}
 variable "dns_ips" {}
 
 locals {
-  subnet            = var.zones_subnets[0][0]
+  private_subnet    = var.private_subnet
   name              = var.name
   resource_group_id = var.settings.resource_group_id
   datacenter        = var.settings.datacenter
@@ -41,7 +41,7 @@ resource "ibm_pi_network" "private" {
   pi_network_name      = "${local.name}-private"
   pi_cloud_instance_id = ibm_resource_instance.location.guid
   pi_network_type      = "vlan"
-  pi_cidr              = local.subnet.cidr
+  pi_cidr              = local.private_subnet.cidr
   pi_dns               = [var.dns_ips[0]]
   # pi_dns               = var.dns_ips
 }

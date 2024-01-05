@@ -47,7 +47,6 @@ locals {
   transit_vpc       = data.terraform_remote_state.transit.outputs.vpc
   enterprise_zones  = local.config_tf.enterprise_zones
   transit_zones     = local.config_tf.transit_zones
-  spokes_zones      = local.config_tf.spokes_zones
   enterprise_vpc    = data.terraform_remote_state.enterprise.outputs.vpc
   enterprise_link   = data.terraform_remote_state.enterprise_link.outputs
   transit_spoke_tgw = data.terraform_remote_state.transit_spoke_tgw.outputs
