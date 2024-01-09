@@ -127,8 +127,11 @@ resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
   route_direct_link_ingress     = false
   route_transit_gateway_ingress = true
   route_vpc_zone_ingress        = false
+  advertise_routes_to           = ["transit_gateway"]
 }
 
+/*
+TODO
 resource "null_resource" "vpc-routing-table-update" {
   triggers = {
     path_module   = path.module
@@ -145,6 +148,7 @@ resource "null_resource" "vpc-routing-table-update" {
     EOS
   }
 }
+*/
 
 locals {
   # from the spokes into the transit destine for enterprise.  The transit VPC zone is determined
@@ -179,8 +183,11 @@ resource "ibm_is_vpc_routing_table_route" "transit_tgw_ingress" {
   destination   = each.value.cidr
   action        = "deliver"
   next_hop      = module.transit_zones[each.value.zone_number].firewall_ip
+  advertise     = true
 }
 
+/*
+TODO
 resource "null_resource" "vpc-routing-table-route-create" {
   for_each = ibm_is_vpc_routing_table_route.transit_tgw_ingress
   triggers = {
@@ -200,6 +207,7 @@ resource "null_resource" "vpc-routing-table-route-create" {
     EOS
   }
 }
+*/
 
 
 

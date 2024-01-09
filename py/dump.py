@@ -158,7 +158,7 @@ def dump_tgws(tf_dirs):
 
 def dump_settings(settings):
   print("settings:")
-  for setting in ["spoke_count", "spoke_count_power", "subnet_worker", "subnet_dns", "subnet_vpe", "subnet_fw"]:
+  for setting in ["spoke_count", "spoke_count_power"]:
     print(f'  {setting} {settings[setting]}')
 
 def dump_config(tf_dirs):

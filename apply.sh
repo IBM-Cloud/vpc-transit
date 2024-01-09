@@ -13,13 +13,14 @@ check_finish() {
 
 show_help() {
   cat << 'EOF'
-./apply.sh [-?] [-h] [-d] [-p] (start | : ) | (end | : )
+./apply.sh [-?] [-h] [-d] [-p] [-u] (start | : ) | (end | : )
 apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
 -? - this message
 -h - this message
 -p - just print the directories that would be visited do not do anything
 -d - destroy the resources in the reverse order of the apply.  Default is to apply in each directory.
      Parameters[end] and [start end] are still with respect to ascending order.  Destroy will not exit on failure.
+-u - just upgrade terraform and plugins to a new version, do not apply or destroy any resources
 
 dir - apply in one directory
 start | : - start directory or : to start at the beginning
@@ -43,9 +44,10 @@ EOF
 all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf power_tf"
 just_print=false
 apply=true
+terraform_upgrade=false
 
 #OPTIND=1
-while getopts "h?cdp" opt; do
+while getopts "h?cdpu" opt; do
   case "$opt" in
     h|\?)
       show_help
@@ -56,6 +58,9 @@ while getopts "h?cdp" opt; do
       ;;
     d)  
       apply=false
+      ;;
+    u)  
+      terraform_upgrade=true
       ;;
   esac
 done
@@ -104,6 +109,11 @@ if [ $just_print = true ]; then
   exit 0
 fi
 
+if [ $terraform_upgrade = true ]; then
+  terraform_upgrade_option="-upgrade"
+else
+  terraform_upgrade_option=""
+fi
 for dir in $tf; do
   (
     cd $dir
@@ -114,18 +124,20 @@ for dir in $tf; do
       *) parallelism_n=10;;
     esac
     
-    echo '>>>' terraform init
-    terraform init
-    if [ $apply = true ]; then
-      echo '>>>' terraform apply -parallelism=$parallelism_n -auto-approve
-      terraform apply -parallelism=$parallelism_n -auto-approve
-    else
-      echo '>>>' terraform destroy -parallelism=$parallelism_n -auto-approve
-      if ! terraform destroy -parallelism=$parallelism_n -auto-approve; then
-        success=false
-        echo '**************************************************'
-        echo destroy failed
-        echo '**************************************************'
+    echo '>>>' terraform init $terraform_upgrade_option
+    terraform init $terraform_upgrade_option
+    if [ $terraform_upgrade = false ]; then
+      if [ $apply = true ]; then
+        echo '>>>' terraform apply -parallelism=$parallelism_n -auto-approve
+        terraform apply -parallelism=$parallelism_n -auto-approve
+      else
+        echo '>>>' terraform destroy -parallelism=$parallelism_n -auto-approve
+        if ! terraform destroy -parallelism=$parallelism_n -auto-approve; then
+          success=false
+          echo '**************************************************'
+          echo destroy failed
+          echo '**************************************************'
+        fi
       fi
     fi
   )
