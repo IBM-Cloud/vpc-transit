@@ -105,6 +105,21 @@ resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
   route_transit_gateway_ingress    = true
   route_vpc_zone_ingress           = false
   accept_routes_from_resource_type = ["vpn_gateway"]
+  advertise_routes_to              = ["transit_gateway"]
+}
+
+#----------------------------------------------------------------------
+# NOTE: Add additional address prefixes in the transit for the enterprise to allow the
+# spokes to learn enterprise routes via transit gateways
+#
+# This should be taken care of by route advertisement but routes added by the VPN service do not yet
+# have the "Advertise" boolean set.  The VPN team is looking into this.
+resource "ibm_is_vpc_address_prefix" "vpn_temporary_kludge_phantom" {
+  for_each = { for k, zone in local.enterprise_zones : k => zone }
+  name     = "${local.settings.basename}phantom-enterprise${each.key}"
+  vpc      = local.transit_vpc.id
+  zone     = each.value.zone
+  cidr     = each.value.cidr
 }
 
 output "vpn_gateway_enterprise" {

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+terraform=terraform
+
 success=unknown
 trap check_finish EXIT
 check_finish() {
@@ -114,25 +116,27 @@ if [ $terraform_upgrade = true ]; then
 else
   terraform_upgrade_option=""
 fi
+
+
 for dir in $tf; do
   (
     cd $dir
-    echo '>>>' "$opt resources with terraform in the $dir/ directory"
+    echo '>>>' "$opt resources with $terraform in the $dir/ directory"
     # bug https://jiracloud.swg.usma.ibm.com:8443/browse/VPN-576
     case $dir in
       enterprise_link_tf|power_tf) parallelism_n=1;;
       *) parallelism_n=10;;
     esac
     
-    echo '>>>' terraform init $terraform_upgrade_option
-    terraform init $terraform_upgrade_option
+    echo '>>>' $terraform init $terraform_upgrade_option
+    $terraform init $terraform_upgrade_option
     if [ $terraform_upgrade = false ]; then
       if [ $apply = true ]; then
-        echo '>>>' terraform apply -parallelism=$parallelism_n -auto-approve
-        terraform apply -parallelism=$parallelism_n -auto-approve
+        echo '>>>' $terraform apply -parallelism=$parallelism_n -auto-approve
+        $terraform apply -parallelism=$parallelism_n -auto-approve
       else
-        echo '>>>' terraform destroy -parallelism=$parallelism_n -auto-approve
-        if ! terraform destroy -parallelism=$parallelism_n -auto-approve; then
+        echo '>>>' $terraform destroy -parallelism=$parallelism_n -auto-approve
+        if ! $terraform destroy -parallelism=$parallelism_n -auto-approve; then
           success=false
           echo '**************************************************'
           echo destroy failed

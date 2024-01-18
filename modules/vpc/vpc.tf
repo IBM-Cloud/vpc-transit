@@ -35,7 +35,7 @@ locals {
   # subnets are var.zone[zid].subnets[sid] convert this to a map of subnets indexed by "z$zid-s$sid"
   subnets = flatten(var.zones_subnets)
 
-  # zones could be derived from var.zones_subnets or var.zones_address_prefixes
+  # zones are not derived from var.zones_address_prefixes in case phantom address prefixes are required.
   zones = [for zone_number, subnets in var.zones_subnets : {
     zone = subnets[0].zone
   }]

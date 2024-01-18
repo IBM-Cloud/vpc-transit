@@ -5,14 +5,21 @@ variable "power" {
 }
 variable "ssh_key_name" {}
 
-resource "ibm_pi_image" "testacc_image" {
-  pi_image_name        = "SLES15-SP4"
+data "ibm_pi_catalog_images" "my_images" {
   pi_cloud_instance_id = var.power.guid
-  pi_image_id          = "e00178e1-f763-41b7-adb0-b5da0edde4c9"
 }
 
 locals {
-  user_data = file("${path.module}/user_data.sh")
+  image_name      = "SLES15-SP5"
+  user_data       = file("${path.module}/user_data.sh")
+  matching_images = [for image in data.ibm_pi_catalog_images.my_images.images : image if image.name == local.image_name]
+  image_id        = local.matching_images[0].image_id
+}
+
+resource "ibm_pi_image" "testacc_image" {
+  pi_image_name        = local.image_name
+  pi_cloud_instance_id = var.power.guid
+  pi_image_id          = local.image_id
 }
 
 output "user_data" {
@@ -20,44 +27,23 @@ output "user_data" {
 }
 
 resource "ibm_pi_instance" "worker" {
-  pi_memory        = "4"
-  pi_processors    = "2"
-  pi_instance_name = var.power.name
-  pi_proc_type     = "shared"
-  pi_image_id      = ibm_pi_image.testacc_image.image_id
-  # pi_key_pair_name     = ibm_pi_key.ssh_key_tmp.pi_key_name
+  pi_memory            = "4"
+  pi_processors        = "2"
+  pi_instance_name     = var.power.name
+  pi_proc_type         = "shared"
+  pi_image_id          = ibm_pi_image.testacc_image.image_id
   pi_key_pair_name     = var.ssh_key_name
   pi_sys_type          = "s922"
   pi_cloud_instance_id = var.power.guid
   pi_pin_policy        = "none"
   pi_storage_type      = "tier3"
   pi_network {
-    // network_id = ibm_pi_network.private.network_id
     network_id = var.power.network_private.network_id
   }
   pi_network {
-    //network_id = ibm_pi_network.power_networks.network_id
     network_id = var.power.network_public.network_id
   }
 }
-output "ibm_pi_instance_worker" {
-  value = {
-    pi_memory        = "4"
-    pi_processors    = "2"
-    pi_instance_name = var.power.name
-    pi_proc_type     = "shared"
-    pi_image_id      = ibm_pi_image.testacc_image.image_id
-    # pi_key_pair_name     = ibm_pi_key.ssh_key_tmp.pi_key_name
-    pi_key_pair_name     = var.ssh_key_name
-    pi_sys_type          = "s922"
-    pi_cloud_instance_id = var.power.guid
-    pi_pin_policy        = "none"
-    pi_storage_type      = "tier3"
-    pi_network_private   = var.power.network_private.network_id
-    pi_network_public    = var.power.network_public.network_id
-  }
-}
-
 
 locals {
   networks = { for i, network in ibm_pi_instance.worker.pi_network : network.network_name => network }
@@ -71,6 +57,7 @@ output "workers" {
       subnet_name          = var.power.network_private.pi_network_name
       fip                  = local.networks["${var.power.name}-public"].external_ip
       primary_ipv4_address = local.networks["${var.power.name}-private"].ip_address
+      zone                 = "${var.settings.datacenter}-1"
     }
   }
 }

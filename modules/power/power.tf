@@ -8,6 +8,7 @@ locals {
   name              = var.name
   resource_group_id = var.settings.resource_group_id
   datacenter        = var.settings.datacenter
+  pi_network_mtu    = 1450
 }
 
 resource "ibm_resource_instance" "location" {
@@ -32,6 +33,7 @@ resource "ibm_pi_network" "public" {
   pi_network_name      = "${local.name}-public"
   pi_cloud_instance_id = ibm_resource_instance.location.guid
   pi_network_type      = "pub-vlan"
+  pi_network_mtu       = local.pi_network_mtu
 }
 
 resource "ibm_pi_network" "private" {
@@ -43,6 +45,7 @@ resource "ibm_pi_network" "private" {
   pi_network_type      = "vlan"
   pi_cidr              = local.private_subnet.cidr
   pi_dns               = [var.dns_ips[0]]
+  pi_network_mtu       = local.pi_network_mtu
   # pi_dns               = var.dns_ips
 }
 

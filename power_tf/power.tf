@@ -93,7 +93,6 @@ resource "ibm_pi_key" "ssh_key_tmp" {
   pi_cloud_instance_id = module.spokes_power[local.settings.spoke_count_vpc].power.guid
 }
 
-
 module "spokes_power_instances" {
   for_each     = { for spoke_number, power in module.spokes_power : spoke_number => power.power }
   source       = "./power_test_instances_tf"
@@ -101,6 +100,7 @@ module "spokes_power_instances" {
   power        = each.value
   ssh_key_name = ibm_pi_key.ssh_key_tmp[0].pi_key_name
 }
+
 output "spokes_power_instances" {
   value = module.spokes_power_instances
 }
