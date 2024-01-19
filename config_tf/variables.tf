@@ -44,10 +44,6 @@ variable "zones" {}
 variable "profile" {
   default = "cx2-2x4"
 }
-variable "image_name" {
-  default = "ibm-ubuntu-22-04-1-minimal-amd64-3"
-}
-
 # firewall implementation
 # is there a firewall
 variable "firewall" {

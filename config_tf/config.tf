@@ -3,8 +3,17 @@ data "ibm_is_ssh_key" "ssh_key" {
   name  = var.ssh_key_name
 }
 
-data "ibm_is_image" "ubuntu" {
-  name = var.image_name
+data "ibm_is_images" "all_images" {
+  visibility = "public"
+  status     = "available"
+}
+
+locals {
+  provider_region = var.region
+
+  image_os = "ubuntu-22-04-amd64"
+  image    = [for image in data.ibm_is_images.all_images.images : image if image.os == local.image_os]
+  image_id = local.image[0].id
 }
 
 data "external" "ifconfig_me" {
@@ -43,7 +52,6 @@ resource "ibm_is_ssh_key" "ssh_key_tmp" {
 
 locals {
   ssh_key_ids       = var.ssh_key_name == "" ? [ibm_is_ssh_key.ssh_key_tmp.id] : [data.ibm_is_ssh_key.ssh_key[0].id, ibm_is_ssh_key.ssh_key_tmp.id]
-  provider_region   = var.region
   spoke_count       = var.spoke_count_vpc + var.spoke_count_power
   spoke_count_power = var.spoke_count_power
   spoke_count_vpc   = var.spoke_count_vpc
@@ -176,7 +184,7 @@ output "settings" {
     ssh_key_ids                  = local.ssh_key_ids
     ssh_key_name                 = var.ssh_key_name
     basename                     = var.basename
-    image_id                     = data.ibm_is_image.ubuntu.id
+    image_id                     = local.image_id
     profile                      = var.profile
     make_redis                   = var.make_redis
     make_postgresql              = var.make_postgresql

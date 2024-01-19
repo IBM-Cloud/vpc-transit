@@ -9,11 +9,19 @@ data "ibm_pi_catalog_images" "my_images" {
   pi_cloud_instance_id = var.power.guid
 }
 
+data "ibm_pi_system_pools" "pools" {
+  pi_cloud_instance_id = var.power.guid
+}
+
 locals {
   image_name      = "SLES15-SP5"
   user_data       = file("${path.module}/user_data.sh")
   matching_images = [for image in data.ibm_pi_catalog_images.my_images.images : image if image.name == local.image_name]
   image_id        = local.matching_images[0].image_id
+
+  # grab first one on the list
+  #sys_type        = "s1022"
+  sys_type = data.ibm_pi_system_pools.pools.system_pools[0].type
 }
 
 resource "ibm_pi_image" "testacc_image" {
@@ -33,7 +41,7 @@ resource "ibm_pi_instance" "worker" {
   pi_proc_type         = "shared"
   pi_image_id          = ibm_pi_image.testacc_image.image_id
   pi_key_pair_name     = var.ssh_key_name
-  pi_sys_type          = "s922"
+  pi_sys_type          = local.sys_type
   pi_cloud_instance_id = var.power.guid
   pi_pin_policy        = "none"
   pi_storage_type      = "tier3"

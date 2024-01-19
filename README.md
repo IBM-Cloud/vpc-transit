@@ -1,27 +1,34 @@
 # Transit VPC Hub and Spoke
-This is the companion repository for an IBM Solution tutorial [part one](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit1) and [part two](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit2). The Virtual Private Cloud, VPC, is used to securely manage network traffic in the cloud. VPCs can also be used as a way to encapsulate functionality. The VPCs can be connected to each other using Transit Gateway.
+This is the companion repository for an IBM Solution tutorial [part one](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit1), [part two](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit2) and soon Power VS. The Virtual Private Cloud, VPC, is used to securely manage network traffic in the cloud. VPCs can also be used as a way to encapsulate functionality. The VPCs can be connected to each other using Transit Gateway.
 
 The hub will also be connected to an enterprise data center. A hub and spoke VPC model can serve a multitude of purposes.
 
 ![image](images/vpc-transit-overview.svg)
 
 
-# TLDR;
-Insure python virtual environment and terraform are available or use docker as described in the prerequisite section below. 
+## Prerequisites
+Create a docker image and then use it as described below.  Alternatively install the latest terraform and python version. Python is optional and used for connectivity testing with pytest.
+
+Most recently tested with two versions:
+- Terraform v1.5.3
+- Python 3.11.5
+
+Insure python virtual environment and terraform are available or create a docker image as described below.
+
 Terraform and a python environment are required on your desktop development environment. In the IBM Cloud you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check).
 
-## Prerequisites
 
 Terraform will use your API key:
 ```sh
 export IBMCLOUD_API_KEY=YourAPIKEy
 ```
 
-The ibmcloud cli must be available and have the `is` plugin 9.0.0 or later installed:
-```sh
-ibmcloud plugin install is
-```
+Terraform and a python environment are required on your desktop development environment.
 
+In the IBM Cloud the firewall-router instance will [allow_ip_spoofing](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about). You must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check). You need an SSH key to connect to the virtual servers. If you don't have an SSH key, see [the instructions](/docs/vpc?topic=vpc-ssh-keys) for creating a key for VPC. 
+
+
+## Steps
 ```sh
 git clone https://github.com/IBM-Cloud/vpc-transit
 cd vpc-transit
@@ -42,21 +49,16 @@ apply -p
 Apply the layers. Follow along in the tutorial to understand what each layer is accomplishing. Or just install them all:
 
 ```sh
-apply -p : :
+apply : :
 ```
 
-Then test the results. It is expected that some tests will fail. See the tutorial for details:
+Then test the results. See the tutorials for details:
 
 ```sh
 pytest -m curl
 ```
 
 See more details on pytest below.
-
-# Prerequisites
-Terraform and a python environment are required on your desktop development environment.
-
-In the IBM Cloud the firewall-router instance will [allow_ip_spoofing](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about). You must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check). You need an SSH key to connect to the virtual servers. If you don't have an SSH key, see [the instructions](/docs/vpc?topic=vpc-ssh-keys) for creating a key for VPC. 
 
 ## Docker image
 A docker image can be created based on the [python image](https://hub.docker.com/_/python) and the [terraform linux Ubuntu/Debian install instructions](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)

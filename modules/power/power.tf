@@ -9,7 +9,21 @@ locals {
   resource_group_id = var.settings.resource_group_id
   datacenter        = var.settings.datacenter
   pi_network_mtu    = 1450
+  crn               = ibm_resource_instance.location.crn
+  workspace_id      = ibm_resource_instance.location.guid
+  # crn             = ibm_pi_workspace.location.crn not supported yet
+  # workspace_id    = ibm_pi_workspace.location.id
 }
+
+/*
+resource "ibm_pi_workspace" "location" {
+  pi_name              = local.name
+  pi_datacenter        = local.datacenter
+  pi_resource_group_id = local.resource_group_id
+  # pi_plan              = "power-virtual-server-group"
+  pi_plan = "public"
+}
+*/
 
 resource "ibm_resource_instance" "location" {
   name              = local.name
@@ -21,7 +35,7 @@ resource "ibm_resource_instance" "location" {
 
 resource "time_sleep" "wait_for_workspace_ready" {
   depends_on = [
-    ibm_resource_instance.location
+    local.workspace_id
   ]
   create_duration = "1m"
 }
@@ -31,7 +45,7 @@ resource "ibm_pi_network" "public" {
     time_sleep.wait_for_workspace_ready
   ]
   pi_network_name      = "${local.name}-public"
-  pi_cloud_instance_id = ibm_resource_instance.location.guid
+  pi_cloud_instance_id = local.workspace_id
   pi_network_type      = "pub-vlan"
   pi_network_mtu       = local.pi_network_mtu
 }
@@ -41,7 +55,7 @@ resource "ibm_pi_network" "private" {
     time_sleep.wait_for_workspace_ready
   ]
   pi_network_name      = "${local.name}-private"
-  pi_cloud_instance_id = ibm_resource_instance.location.guid
+  pi_cloud_instance_id = local.workspace_id
   pi_network_type      = "vlan"
   pi_cidr              = local.private_subnet.cidr
   pi_dns               = [var.dns_ips[0]]
@@ -51,9 +65,9 @@ resource "ibm_pi_network" "private" {
 
 output "power" {
   value = {
-    guid = ibm_resource_instance.location.guid
-    crn  = ibm_resource_instance.location.crn
-    name = ibm_resource_instance.location.name
+    guid = local.workspace_id
+    name = local.name
+    crn  = local.crn
     network_private = {
       pi_network_name = ibm_pi_network.private.pi_network_name
       pi_network_type = ibm_pi_network.private.pi_network_type

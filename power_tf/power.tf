@@ -53,6 +53,9 @@ module "spokes_power" {
   settings       = local.settings
   private_subnet = each.value[0].subnets[0] // the private subnet for the power vs
   dns_ips        = local.transit_dns_ips
+  providers = {
+    ibm = ibm.power
+  }
 }
 
 output "powers" {
@@ -79,14 +82,9 @@ output "tg_gateway" {
   }
 }
 
-# need to choose either a personal key or the temporary key created by terraform
-#data "ibm_pi_key" "personal" {
-#  pi_key_name          = var.settings.ssh_key_name
-#  pi_cloud_instance_id = var.power.guid
-#}
-
 # put the key into the first power spoke (it will be visible in all spokes)
 resource "ibm_pi_key" "ssh_key_tmp" {
+  provider             = ibm.power
   count                = length(module.spokes_power) == 0 ? 0 : 1
   pi_key_name          = local.settings.basename
   pi_ssh_key           = local.tls_public_key
@@ -99,6 +97,9 @@ module "spokes_power_instances" {
   settings     = local.settings
   power        = each.value
   ssh_key_name = ibm_pi_key.ssh_key_tmp[0].pi_key_name
+  providers = {
+    ibm = ibm.power
+  }
 }
 
 output "spokes_power_instances" {
