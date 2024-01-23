@@ -8,22 +8,19 @@ region     = "us-south" # change as desired
 datacenter = "dal10"    # must be a PowerVS Power Edge Router (PER) supported datacenter
 
 # --------------------------------
-# do not change these if following the steps in the solution tutorial (VPN based)
-# Choose either vpn=true, firewall=false OR vpn=false, firewall=true
+# do not change these for the VPN solution tutorial
 #VPN:
 vpn      = true
 firewall = false
 
-#Direct link simulation:
-#vpn      = false
-#firewall = true
+# No changes required for the VPN solution tutorial --------------------------------
+spoke_count_vpc   = 0
+spoke_count_power = 1
+zones             = 1
+make_postgresql   = true
+test_lbs          = false
 
-# do not change these --------------------------------
-spoke_count_vpc              = 0
-spoke_count_power            = 1
-zones                        = 1
+#  Must not change for VPN based configuration (no firewall in VPN configuration)
 all_firewall                 = false
-make_postgresql              = true
 firewall_nlb                 = false
 number_of_firewalls_per_zone = 1
-test_lbs                     = false

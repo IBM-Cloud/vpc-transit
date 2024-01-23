@@ -7,29 +7,25 @@ The hub will also be connected to an enterprise data center. A hub and spoke VPC
 
 
 ## Prerequisites
-Create a docker image and then use it as described below.  Alternatively install the latest terraform and python version. Python is optional and used for connectivity testing with pytest.
+- If configuring a firewall/router you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check). Not required for VPN configuration.
+- A [Platform API key ](https://test.cloud.ibm.com/iam/apikeys) to use terraform to provision the resources in the IBM cloud.
+
+Create a docker image and then use it as described below and skip this section for install of terraform, python and python requirements:
+- Install the latest terraform
+- Install python - see instructions below to set up a python virtual environment. Python is optional and used for connectivity testing with pytest. Resources can be provisioned without python.
+- `pip install -r requirements.txt`
 
 Most recently tested with two versions:
-- Terraform v1.5.3
-- Python 3.11.5
-
-Insure python virtual environment and terraform are available or create a docker image as described below.
-
-Terraform and a python environment are required on your desktop development environment. In the IBM Cloud you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check).
+- Terraform v1.5.3, v1.7.0
+- Python 3.11.5, 3.12.1
 
 
+## Steps
 Terraform will use your API key:
 ```sh
 export IBMCLOUD_API_KEY=YourAPIKEy
 ```
 
-Terraform and a python environment are required on your desktop development environment.
-
-In the IBM Cloud the firewall-router instance will [allow_ip_spoofing](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about). You must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check). You need an SSH key to connect to the virtual servers. If you don't have an SSH key, see [the instructions](/docs/vpc?topic=vpc-ssh-keys) for creating a key for VPC. 
-
-
-## Steps
-```sh
 git clone https://github.com/IBM-Cloud/vpc-transit
 cd vpc-transit
 cp config_tf/template.terraform.tfvars config_tf/terraform.tfvars
