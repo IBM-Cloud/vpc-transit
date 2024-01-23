@@ -4,8 +4,8 @@ resource_group_name = "Default" # YOUR resource group
 
 # optionally change these
 basename   = "abc"      # Your initials (or unique values in your account)
-region     = "us-south" # change as desired
-datacenter = "dal10"    # must be a PowerVS Power Edge Router (PER) supported datacenter
+region     = "us-south" # change as desired like eu-es
+datacenter = "dal10"    # must be a PowerVS Power Edge Router (PER) supported datacenter like mad02
 
 # --------------------------------
 # do not change these for the VPN solution tutorial
