@@ -98,8 +98,6 @@ DNS:
 ![image](images/vpc-transit-dns-vpe.svg)
 
 # VPN as an alternative to the Direct Link Simulation
-The tutorials are all about direct link so if you are following the tutorial ignore this section on VPN.
-
 It is possible to replace the direct link simulation with VPN Gateways using the following configuration. 
 
 ![image](images/vpc-transit-vpn-zones.svg)
@@ -113,6 +111,20 @@ firewall = false
 The vpn flag will direct the `./apply.sh enterprise_link_tf` to create VPN Gateways and VPN Gateway Connections instead of Transit Gateway connections.  The firewalls must not be created - this is a VPN only configuration.
 
 All the tests should pass
+
+# PowerVS
+PowerVS spokes allow Power instances to access VPC resources like Virtual private endpoint gateways (VPEs), VPC VPN and DNS.
+
+![image](images/vpc-transit-overview-power.svg)
+
+config_tf/terraform.tfvars:
+```
+vpn = true
+firewall = false
+spoke_count_vpc              = 0
+spoke_count_power            = 1
+zones                        = 1
+```
 
 ## Python prerequisite
 Python is used for testing.  You can skip the testing steps and trust the pass/fail results described in the tutorial.
