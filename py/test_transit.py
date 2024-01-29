@@ -7,6 +7,9 @@ import ipaddress
 import re
 import itertools
 import os
+import urllib3
+import json
+from urllib.parse import urlencode
 
 
 def username():
@@ -358,6 +361,56 @@ cat psql.out | grep '1 row'
 """.lstrip()
     shell_command_on_fip(fip, command)
 
+def vpe_cos_test(fip, resource):
+    """execute a command in fip to verify cos is accessible"""
+    key = resource["key"]
+    # needed for general queries to COS instance - like list buckets
+    credentials = key['credentials']
+    apikey = credentials['apikey']
+    bucket_name = resource['bucket_name']
+    object_key = resource['object_key']
+    cos_endpoint = resource['cos_endpoint']
+
+#token_json=$(curl -X "POST" "https://iam.cloud.ibm.com/oidc/token" \
+#     -H 'Accept: application/json' \
+#     -H 'Content-Type: application/x-www-form-urlencoded' \
+#     --data-urlencode "apikey=$APIKEY" \
+#     --data-urlencode "response_type=response_type" \
+#     --data-urlencode "grant_type=urn:ibm:params:oauth:grant-type:apikey")
+
+    iam_url="https://iam.cloud.ibm.com/oidc/token" 
+    fields= {
+        "apikey": apikey,
+        "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
+    }
+    encoded_args = urlencode(fields)
+    url  = iam_url + "?" + encoded_args
+    resp = urllib3.request("POST", url,
+       headers={
+           'Accept': 'application/json' ,
+           'Content-Type':' application/x-www-form-urlencoded',
+       }
+    )
+    ret_json = json.loads(resp.data)
+    bearer_token = ret_json['access_token']
+    command = f"""
+#!/bin/bash
+set -ex
+
+cos_endpoint={cos_endpoint}
+bucket_name={bucket_name}
+object_key={object_key}
+
+# fail if curl fails:
+curl_output=$(curl https://$cos_endpoint/$bucket_name -H "Authorization: bearer {bearer_token}")
+
+# fail if the object is not in the XML returned from the bucket
+grep "<Key>$object_key<" <<< $curl_output
+
+# fail if the bucket name is not in the XML returned from the bucket
+grep "<Name>$bucket_name<" <<< $curl_output
+""".lstrip()
+    shell_command_on_fip(fip, command)
 
 def shell_command_on_fip(fip, command):
     remote_file_name = "/t.sh"
@@ -472,11 +525,10 @@ class VPE_COS(VPE):
         return list()
 
     def test_vpe_resource_mark(self):
-        # todo COS test has not been written yet
-        return pytest.mark.skip
+        return list()
 
     def test_vpe_resource(self):
-        assert False, "todo cos not implemented should be skipped"
+        vpe_cos_test(self.source_instance.fip, self.destination_resource)
 
 
 vpe_type_to_class = {"cos": VPE_COS, "redis": VPE_REDIS, "postgresql": VPE_POSTGRESQL}

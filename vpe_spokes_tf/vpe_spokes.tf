@@ -35,7 +35,7 @@ module "vpe_resources" {
   source            = "../modules/vpe_resources"
   make_redis        = local.settings.make_redis
   make_postgresql   = local.settings.make_postgresql
-  make_cos          = local.settings.make_cos
+  make_cos          = false
   basename          = each.value.name
   tags              = local.tags
   resource_group_id = local.settings.resource_group_id

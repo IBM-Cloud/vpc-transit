@@ -34,3 +34,4 @@ typed-ast
 typer
 typing_extensions
 zipp
+urllib3

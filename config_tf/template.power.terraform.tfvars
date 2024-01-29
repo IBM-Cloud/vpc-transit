@@ -1,11 +1,12 @@
 # Defaults that work for a 1 spoke VPC + 1 spoke PowerVS environment over VPN
 
-resource_group_name = "Default" # YOUR resource group
+resource_group_name = "Default" # YOUR existing resource group name
 
 # optionally change these
-basename   = "abc"      # Your initials (or unique values in your account)
+basename = "abc" # Prefix for all resources created
+
 region     = "us-south" # change as desired like eu-es
-datacenter = "dal10"    # must be a PowerVS Power Edge Router (PER) supported datacenter like mad02
+datacenter = "dal10"    # PowerVS Power Edge Router (PER) supported datacenter in the same region, like mad02, in the same region as eu-es
 
 # --------------------------------
 # do not change these for the VPN solution tutorial

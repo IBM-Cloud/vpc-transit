@@ -66,6 +66,27 @@ resource "ibm_resource_key" "cos_key" {
   tags = local.tags
 }
 
+resource "random_id" "bucket_suffix" {
+  byte_length = 8
+}
+
+resource "ibm_cos_bucket" "test" {
+  count                = var.make_cos ? 1 : 0
+  bucket_name          = "${var.basename}-test-${random_id.bucket_suffix.hex}"
+  resource_instance_id = ibm_resource_instance.cos[0].id
+  region_location      = var.region
+  storage_class        = "standard"
+}
+
+resource "ibm_cos_bucket_object" "hello" {
+  count           = var.make_cos ? 1 : 0
+  bucket_crn      = ibm_cos_bucket.test[0].crn
+  bucket_location = ibm_cos_bucket.test[0].region_location
+  content         = "Hello World"
+  key             = "hello"
+}
+
+
 resource "ibm_is_virtual_endpoint_gateway" "cos" {
   count          = var.make_cos ? 1 : 0
   vpc            = var.vpc.id
@@ -91,9 +112,10 @@ locals {
   resources = flatten(concat(
     [for key, value in ibm_resource_instance.cos : {
       type         = "cos"
-      value        = value
       key          = ibm_resource_key.cos_key[key]
       cos_endpoint = local.cos_endpoint
+      bucket_name  = ibm_cos_bucket.test[key].bucket_name
+      object_key   = ibm_cos_bucket_object.hello[key].key
       // hostname could be added
     }],
     [for redis in module.redis : {
