@@ -15,7 +15,7 @@ check_finish() {
 
 show_help() {
   cat << 'EOF'
-./apply.sh [-?] [-h] [-d] [-p] [-u] (start | : ) | (end | : )
+./apply.sh [-?] [-h] [-d] [-p] [-u] [-f no] (start | : ) | (end | : )
 apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
 -? - this message
 -h - this message
@@ -23,6 +23,8 @@ apply or destroy the resources in this example by steping into each of the terra
 -d - destroy the resources in the reverse order of the apply.  Default is to apply in each directory.
      Parameters[end] and [start end] are still with respect to ascending order.  Destroy will not exit on failure.
 -u - just upgrade terraform and plugins to a new version, do not apply or destroy any resources
+-n - no auto approve on terraform apply commands.  User must type yes at every terraform prompt - there are a lot
+-r - reset terraform by removing the terraform state files in each layer.  This is very dangerous - all resources will be divorced from terraform and require manual deletion.
 
 dir - apply in one directory
 start | : - start directory or : to start at the beginning
@@ -47,9 +49,11 @@ all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf 
 just_print=false
 apply=true
 terraform_upgrade=false
+terraform_auto_approve="-auto-approve"
+remove_state_files="false"
 
 #OPTIND=1
-while getopts "h?cdpu" opt; do
+while getopts "h?cdpunr" opt; do
   case "$opt" in
     h|\?)
       show_help
@@ -63,6 +67,12 @@ while getopts "h?cdpu" opt; do
       ;;
     u)  
       terraform_upgrade=true
+      ;;
+    n)  
+      terraform_auto_approve=""
+      ;;
+    r)  
+      remove_state_files="true"
       ;;
   esac
 done
@@ -102,6 +112,9 @@ else
   opt=desroying
   tf=$(echo "$tf" | awk '{ for (i=NF; i>1; i--) printf("%s ",$i); print $1; }')
 fi
+if [ $remove_state_files = true ]; then
+  opt=removing_state_files
+fi
 
 echo directories: $tf
 
@@ -122,6 +135,10 @@ for dir in $tf; do
   (
     cd $dir
     echo '>>>' "$opt resources with $terraform in the $dir/ directory"
+    if [ $opt = removing_state_files ]; then
+      rm -f terraform.tfstate terraform.tfstate.backup
+      continue
+    fi
     # bug https://jiracloud.swg.usma.ibm.com:8443/browse/VPN-576
     case $dir in
       enterprise_link_tf|power_tf) parallelism_n=1;;
@@ -132,11 +149,11 @@ for dir in $tf; do
     $terraform init $terraform_upgrade_option
     if [ $terraform_upgrade = false ]; then
       if [ $apply = true ]; then
-        echo '>>>' $terraform apply -parallelism=$parallelism_n -auto-approve
-        $terraform apply -parallelism=$parallelism_n -auto-approve
+        echo '>>>' $terraform apply -parallelism=$parallelism_n $terraform_auto_approve
+        $terraform apply -parallelism=$parallelism_n $terraform_auto_approve
       else
-        echo '>>>' $terraform destroy -parallelism=$parallelism_n -auto-approve
-        if ! $terraform destroy -parallelism=$parallelism_n -auto-approve; then
+        echo '>>>' $terraform destroy -parallelism=$parallelism_n $terraform_auto_approve
+        if ! $terraform destroy -parallelism=$parallelism_n $terraform_auto_approve; then
           success=false
           echo '**************************************************'
           echo destroy failed

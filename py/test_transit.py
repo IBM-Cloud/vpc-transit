@@ -143,7 +143,7 @@ class DNS(ToFrom):
 
     def dns_name(self, instance):
         name = instance.name
-        zone = f"{name[:-10]}.com"  # instance name is prefix_transit-z0-worker for zone and subnet the zone is prefix_transit.com
+        zone = f"{name[:-10]}.example.com"  # instance name is prefix_transit-z0-worker for zone and subnet the zone is prefix_transit.com
         return f"{name}.{zone}"
 
     def test_me(self):

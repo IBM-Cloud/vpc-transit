@@ -18,7 +18,7 @@ firewall = false
 spoke_count_vpc   = 0
 spoke_count_power = 1
 zones             = 1
-make_postgresql   = true
+make_cos          = true
 test_lbs          = false
 
 #  Must not change for VPN based configuration (no firewall in VPN configuration)

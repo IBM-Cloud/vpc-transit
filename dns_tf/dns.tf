@@ -72,7 +72,7 @@ module "dns" {
     subnets   = [for zone in each.value.zones : zone.subnets[local.settings.subnet_dns]]
     instances = local.instances[each.key]
   }
-  dns_zone_name = "${each.value.name}.com"
+  dns_zone_name = "${each.value.name}.${local.settings.domain_name}"
   tags          = local.tags
 }
 

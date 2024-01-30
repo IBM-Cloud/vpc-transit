@@ -117,6 +117,7 @@ locals {
       bucket_name  = ibm_cos_bucket.test[key].bucket_name
       object_key   = ibm_cos_bucket_object.hello[key].key
       // hostname could be added
+      virtual_endpoint_gateway = ibm_is_virtual_endpoint_gateway.cos
     }],
     [for redis in module.redis : {
       type                     = "redis"

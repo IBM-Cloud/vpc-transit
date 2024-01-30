@@ -179,6 +179,7 @@ output "settings" {
     datacenter                   = var.datacenter
     resource_group_name          = var.resource_group_name
     resource_group_id            = data.ibm_resource_group.group.id
+    domain_name                  = "example.com" # all created dns addresses are in this domain.
     vpn                          = var.vpn
     vpn_route_based              = var.vpn_route_based
     ssh_key_ids                  = local.ssh_key_ids
