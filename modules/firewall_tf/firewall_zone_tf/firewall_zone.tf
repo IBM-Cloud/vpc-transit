@@ -21,7 +21,22 @@ resource "ibm_is_lb" "zone" {
   profile    = "network-fixed"
   type       = "private"
 }
+
+resource "ibm_iam_authorization_policy" "policy" {
+  count                       = var.firewall_nlb ? 1 : 0
+  description                 = "Provide a specific load balancer access to a specific VPC"
+  source_service_name         = "is"
+  source_resource_type        = "load-balancer"
+  source_resource_instance_id = ibm_is_lb.zone[0].id
+  target_service_name         = "is"
+  target_resource_type        = "vpc"
+  #target_resource_instance_id = var.vpc_id
+  roles = ["Editor"]
+}
+
+
 resource "ibm_is_lb_listener" "zone" {
+  depends_on   = [ibm_iam_authorization_policy.policy[0]]
   count        = var.firewall_nlb ? 1 : 0
   lb           = ibm_is_lb.zone[0].id
   default_pool = ibm_is_lb_pool.zone[0].id
@@ -31,12 +46,13 @@ resource "ibm_is_lb_listener" "zone" {
 }
 
 resource "ibm_is_lb_pool" "zone" {
+  depends_on               = [ibm_iam_authorization_policy.policy[0]]
   count                    = var.firewall_nlb ? 1 : 0
   name                     = var.name
   lb                       = ibm_is_lb.zone[0].id
   algorithm                = "round_robin"
   protocol                 = "tcp"
-  session_persistence_type = "source_ip"
+  session_persistence_type = null
   health_delay             = 60
   health_retries           = 5
   health_timeout           = 30
