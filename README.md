@@ -1,7 +1,7 @@
 # Transit VPC Hub and Spoke
-This is the companion repository for an IBM Solution tutorial [part one](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit1), [part two](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit2) and soon Power VS. The Virtual Private Cloud, VPC, is used to securely manage network traffic in the cloud. VPCs can also be used as a way to encapsulate functionality. The VPCs can be connected to each other using Transit Gateway.
+This is the companion repository for an IBM Solution tutorial [part one](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit1), [part two](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit2) and [PowerVS using VPN](https://cloud.ibm.com/docs/solution-tutorials?topic=solution-tutorials-vpc-transit-power). The Virtual Private Cloud, VPC, is used to securely manage network traffic in the cloud. Spokes can also be used as a way to encapsulate functionality. The Spokes can be connected to each other using Transit Gateway.
 
-The hub will also be connected to an enterprise data center. A hub and spoke VPC model can serve a multitude of purposes.
+The hub will also be connected to an enterprise data center. A VPC hub and spoke model can serve a multitude of purposes.
 
 ![image](images/vpc-transit-overview.svg)
 
