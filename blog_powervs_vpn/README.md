@@ -1,4 +1,4 @@
-# Create and IBM PowerVS and connect to your enterprise via site-to-site VPN for VPC
+# Create a IBM PowerVS environment and connect to your enterprise via site-to-site VPN for VPC
 
 The same Power servers that power your business on premise are available in PowerVS workspaces in the IBM Cloud.  Businesses are using these on demand resources to explore new possibilities, enable development and test environments, <add more etc etc>.  Consumption based pricing means pay for only what you use and cloud elasticity allows for the expansion and contraction of your cloud footprint based on business needs.
 
