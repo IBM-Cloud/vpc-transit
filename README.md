@@ -23,9 +23,11 @@ Most recently tested with two versions:
 ## Steps
 Terraform will use your API key:
 ```sh
-export IBMCLOUD_API_KEY=YourAPIKEy
+export IBMCLOUD_API_KEY=YourAPIKEY
 ```
 
+Clone the repo and initialize the teraform.tfvars file from the template
+```
 git clone https://github.com/IBM-Cloud/vpc-transit
 cd vpc-transit
 cp config_tf/template.terraform.tfvars config_tf/terraform.tfvars

@@ -32,6 +32,11 @@ variable "vpn" {
   type    = bool
   default = false
 }
+variable "vpn_address_prefix_of_enterprise_in_transit" {
+  type        = bool
+  description = "The enterprise address prefix is required in the transit vpc for the transit gateway to advertise the routes to the spokes"
+  default     = true
+}
 
 # route based vpn does not work with both: enterprise -> vpe and enterprise -> spoke
 variable "vpn_route_based" {

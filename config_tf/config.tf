@@ -39,7 +39,7 @@ resource "local_file" "ssh_key_tmp_private" {
 }
 
 resource "local_file" "ssh_key_tmp_public" {
-  content         = tls_private_key.private_key.public_key_pem
+  content         = tls_private_key.private_key.public_key_openssh
   filename        = "${abspath(path.root)}/id_rsa.pub"
   file_permission = "0644"
 }
@@ -174,26 +174,27 @@ output "settings" {
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
-    zones                        = local.zones
-    region                       = var.region
-    datacenter                   = var.datacenter
-    resource_group_name          = var.resource_group_name
-    resource_group_id            = data.ibm_resource_group.group.id
-    domain_name                  = "example.com" # all created dns addresses are in this domain.
-    vpn                          = var.vpn
-    vpn_route_based              = var.vpn_route_based
-    ssh_key_ids                  = local.ssh_key_ids
-    ssh_key_name                 = var.ssh_key_name
-    basename                     = var.basename
-    image_id                     = local.image_id
-    profile                      = var.profile
-    make_redis                   = var.make_redis
-    make_postgresql              = var.make_postgresql
-    make_cos                     = var.make_cos
-    firewall                     = var.firewall
-    firewall_nlb                 = var.firewall_nlb
-    number_of_firewalls_per_zone = var.number_of_firewalls_per_zone
-    all_firewall                 = var.all_firewall
-    test_lbs                     = var.test_lbs
+    zones                                       = local.zones
+    region                                      = var.region
+    datacenter                                  = var.datacenter
+    resource_group_name                         = var.resource_group_name
+    resource_group_id                           = data.ibm_resource_group.group.id
+    domain_name                                 = "example.com" # all created dns addresses are in this domain.
+    vpn                                         = var.vpn
+    vpn_route_based                             = var.vpn_route_based
+    vpn_address_prefix_of_enterprise_in_transit = var.vpn_address_prefix_of_enterprise_in_transit
+    ssh_key_ids                                 = local.ssh_key_ids
+    ssh_key_name                                = var.ssh_key_name
+    basename                                    = var.basename
+    image_id                                    = local.image_id
+    profile                                     = var.profile
+    make_redis                                  = var.make_redis
+    make_postgresql                             = var.make_postgresql
+    make_cos                                    = var.make_cos
+    firewall                                    = var.firewall
+    firewall_nlb                                = var.firewall_nlb
+    number_of_firewalls_per_zone                = var.number_of_firewalls_per_zone
+    all_firewall                                = var.all_firewall
+    test_lbs                                    = var.test_lbs
   }
 }

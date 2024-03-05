@@ -114,8 +114,13 @@ resource "ibm_is_vpc_routing_table" "transit_tgw_ingress" {
 #
 # This should be taken care of by route advertisement but routes added by the VPN service do not yet
 # have the "Advertise" boolean set.  The VPN team is looking into this.
+locals {
+  _address_prefixes = { for k, zone in local.enterprise_zones : k => zone }
+  address_prefixes  = local.settings.vpn_address_prefix_of_enterprise_in_transit ? local._address_prefixes : {}
+
+}
 resource "ibm_is_vpc_address_prefix" "vpn_temporary_kludge_phantom" {
-  for_each = { for k, zone in local.enterprise_zones : k => zone }
+  for_each = local.address_prefixes
   name     = "${local.settings.basename}phantom-enterprise${each.key}"
   vpc      = local.transit_vpc.id
   zone     = each.value.zone
