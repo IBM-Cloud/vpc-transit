@@ -56,6 +56,11 @@ locals {
   spoke_count_power = var.spoke_count_power
   spoke_count_vpc   = var.spoke_count_vpc
   zones             = var.zones
+
+  # choose the list of zones, typically [0], [0,1], [0,1,2] corresponding to [region-1] [region-1, region-2], [region-1, region2, region3]
+  # but if you want to just hit us-south-3 then [2]should work ok
+  zones_range = range(local.zones)
+
   # Each VPC is first broken into zones indexed 0..2
   # the zone is the first break down.  Terraform will refer to them as zone 0, 1, 2 (1 and 2 optional)
   # The cidr blocks are 1,2,3
@@ -78,7 +83,7 @@ locals {
   # enterprise zones are the full cidr block for each zone: 192.168.z.0/24
   # enterprise zone subnets for the two subnets in each zone
   enterprise_cidr = "192.168.0.0/16"
-  enterprise_zone_cidrs = [for zone_number in range(local.zones) : {
+  enterprise_zone_cidrs = [for zone_number in local.zones_range : {
     cidr = cidrsubnet(local.enterprise_cidr, 8, zone_number)
     zone = "${var.region}-${zone_number + 1}"
   }]
@@ -109,7 +114,7 @@ locals {
   cloud_cidr = "10.0.0.0/8"
 
   # list of ciders for each zone
-  cloud_zones_cidr = [for zone_number in range(local.zones) : {
+  cloud_zones_cidr = [for zone_number in local.zones_range : {
     cidr = cidrsubnet(local.cloud_cidr, 8, zone_number + 1)
     zone = "${var.region}-${zone_number + 1}"
   }]
@@ -174,7 +179,7 @@ output "settings" {
       "basename:${var.basename}",
       "dir: ${lower(replace(replace("${abspath(path.root)}", "/", "_"), ":", "_"))}",
     ]
-    zones                                       = local.zones
+    zones_range                                 = local.zones_range
     region                                      = var.region
     datacenter                                  = var.datacenter
     resource_group_name                         = var.resource_group_name
@@ -188,6 +193,7 @@ output "settings" {
     basename                                    = var.basename
     image_id                                    = local.image_id
     profile                                     = var.profile
+    spoke_profile                               = var.profile
     make_redis                                  = var.make_redis
     make_postgresql                             = var.make_postgresql
     make_cos                                    = var.make_cos

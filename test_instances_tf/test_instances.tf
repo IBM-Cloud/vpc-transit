@@ -40,6 +40,7 @@ module "enterprise" {
   source   = "./vpc_test_instances_tf"
   settings = local.settings
   vpc      = local.enterprise.vpc
+  profile  = local.settings.profile
 }
 
 output "enterprise" {
@@ -50,6 +51,7 @@ module "transit" {
   source   = "./vpc_test_instances_tf"
   settings = local.settings
   vpc      = local.transit.vpc
+  profile  = local.settings.profile
 }
 
 output "transit" {
@@ -61,6 +63,7 @@ module "spokes" {
   source   = "./vpc_test_instances_tf"
   settings = local.settings
   vpc      = each.value
+  profile  = local.settings.spoke_profile
 }
 
 output "spokes" {

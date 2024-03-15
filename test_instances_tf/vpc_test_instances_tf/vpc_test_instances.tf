@@ -1,6 +1,7 @@
 # vpc_test_instances - add a test instance to the worker subnet in a vpc
 variable "settings" {}
 variable "vpc" {}
+variable "profile" {}
 
 locals {
   tags                         = var.settings.tags
