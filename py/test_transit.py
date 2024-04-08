@@ -129,12 +129,18 @@ class Curl(ToFrom):
             self.destination.name,
         )
 
+def instance_name_to_dns_name(instance_name):
+    for a_record in tf_dirs.dns_tf.a_records:
+        if a_record["name"] == instance_name:
+            return a_record["dns_name"]
+    return "NO_DNS_NAME"
+
 @dataclass
 class DNS(ToFrom):
     def __str__(self):
         if verbose_output():
           src = f"l-{basic_name(self.source.name)} ({self.source.fip}) {self.source.primary_ipv4_address}"
-          dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) r-{self.dns_name(self.destination)}"
+          dst = f"{self.destination.primary_ipv4_address} ({self.destination.fip}) rr-{self.dns_name(self.destination)}"
           return f"{src:50} -> {dst}"
         else:
           src = f"l-{basic_name(self.source.name)}"
@@ -142,9 +148,7 @@ class DNS(ToFrom):
           return f"{src:15} -> {dst}"
 
     def dns_name(self, instance):
-        name = instance.name
-        zone = f"{name[:-10]}.example.com"  # instance name is prefix_transit-z0-worker for zone and subnet the zone is prefix_transit.com
-        return f"{name}.{zone}"
+        return instance_name_to_dns_name(instance.name)
 
     def test_me(self):
         curl_from_fip_to_ip_name_test(
@@ -205,7 +209,7 @@ def parameters_for_test_curl(first_mark):
 def parameters_for_test_curl_dns():
     try:
       # has dns been initialized?
-      module_dns = tf_dirs.dns_tf.module_dns
+      a_records = tf_dirs.dns_tf.a_records
     except: 
       return [ ]
     curls = list()

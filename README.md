@@ -7,7 +7,7 @@ The hub will also be connected to an enterprise data center. A VPC hub and spoke
 
 
 ## Prerequisites
-- If configuring a firewall/router you must [enable IP spoofing checks](https://{DomainName}/docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check). Not required for VPN configuration.
+- If configuring a firewall/router you must [enable IP spoofing checks](https:///docs/vpc?topic=vpc-ip-spoofing-about#ip-spoofing-enable-check) and [enable DNS Binding Connection](). Not required for VPN configuration.
 - A [Platform API key ](https://test.cloud.ibm.com/iam/apikeys) to use terraform to provision the resources in the IBM cloud.
 
 Create a docker image and then use it as described below and skip this section for install of terraform, python and python requirements:

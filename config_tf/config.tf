@@ -183,8 +183,10 @@ output "settings" {
     region                                      = var.region
     datacenter                                  = var.datacenter
     resource_group_name                         = var.resource_group_name
+    account_id                                  = data.ibm_resource_group.group.account_id
     resource_group_id                           = data.ibm_resource_group.group.id
-    domain_name                                 = "example.com" # all created dns addresses are in this domain.
+    subdomain_cloud                             = "cloud.example.com"      # clout.example.com subdomain of all cloud resources that can be configured, not VPE DNS names do not follow this pattern
+    subdomain_enterprise                        = "enterprise.example.com" # enterprise.example.com subdomain of all enterprise resources
     vpn                                         = var.vpn
     vpn_route_based                             = var.vpn_route_based
     vpn_address_prefix_of_enterprise_in_transit = var.vpn_address_prefix_of_enterprise_in_transit

@@ -18,7 +18,7 @@ class FromDict:
 class TerraformOutput:
   def __init__(self):
     # from apply.sh
-    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf vpe_dns_forwarding_rules_tf power_tf"
+    all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf power_tf"
     self.tf_dir_outputs = collections.OrderedDict()
     for tf_dir_name in all.split():
       try:
@@ -113,11 +113,6 @@ def dump_zones(name, zones):
       for subnet in zone['subnets']:
         print(f'    {subnet["cidr"]}')
 
-def dump_tgw(tgw):
-    print(f' {tgw["name"]} {tgw["id"]}')
-    for connection_name, connection in tgw["connections"].items():
-      print(f'    {connection["name"]} {connection["connection_id"]}')
-
 def dump_lb(lb_name, lb_obj):
   print(f"  {lb_name}")
   lb = lb_obj["lb"]
@@ -141,6 +136,11 @@ def dump_lbs(tf_dirs):
     for lb_name, lb in tf_dirs.test_lbs_tf.lbs.items():
       dump_lb(lb_name, lb)
   
+def dump_tgw(tgw):
+    print(f' {tgw["name"]} {tgw["id"]}')
+    for connection_name, connection in tgw["connections"].items():
+      print(f'    {connection["name"]} {connection["connection_id"]}')
+
 def dump_tgws(tf_dirs):
     print('tgws')
     if len(tf_dirs.enterprise_link_tf) == 0:
@@ -155,6 +155,13 @@ def dump_tgws(tf_dirs):
     else:
         dump_tgw(tf_dirs.transit_spoke_tgw_tf.tg_gateway)
   
+def dump_dns(tf_dirs):
+    print('dns')
+    if len(tf_dirs.dns_tf) == 0:
+        print('  no dns')
+        return
+    for a_record in tf_dirs.dns_tf.a_records:
+      print(f'  {a_record["dns_name"]} {a_record["name"]} {a_record["ip"]}')
 
 def dump_settings(settings):
   print("settings:")
@@ -170,6 +177,7 @@ def dump_config(tf_dirs):
     dump_zones("transit", transit_zones)
 
 def dump_normal(tf_dirs):
+    dump_dns(tf_dirs)
     dump_lbs(tf_dirs)
     dump_tgws(tf_dirs)
     dump_vpes(tf_dirs)

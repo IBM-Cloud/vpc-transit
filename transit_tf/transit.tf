@@ -15,6 +15,7 @@ locals {
   transit_zones    = local.config_tf.transit_zones
   cloud_zones_cidr = local.settings.cloud_zones_cidr
   tags             = local.settings.tags
+  name             = "${local.settings.basename}-transit"
 
   zones_subnets = [for zone_number, zone in local.transit_zones : [for subnet_number, subnet in zone.subnets : {
     subnet_number = subnet_number # subnet in zone: 0,1,2,3
@@ -26,11 +27,13 @@ locals {
 
 module "transit" {
   source                    = "../modules/vpc"
-  name                      = "${local.settings.basename}-transit"
+  name                      = local.name
   settings                  = local.settings
   zones_address_prefixes    = [for zone_number, zone_cidr in local.transit_zones : [zone_cidr]]
   zones_subnets             = local.zones_subnets
   make_firewall_route_table = true
+  hub_vpc_id                = null
+  is_hub                    = true
 }
 
 output "vpc" {

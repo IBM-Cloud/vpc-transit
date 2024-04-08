@@ -1,5 +1,4 @@
 # spokes - vpc for each spoke
-
 data "terraform_remote_state" "config" {
   backend = "local"
 
@@ -31,6 +30,8 @@ module "spokes" {
   zones_address_prefixes    = [for zone_number, zone_cidr in local.spokes_zones[each.key] : [zone_cidr]]
   zones_subnets             = local.zones_subnets[each.key]
   make_firewall_route_table = false
+  hub_vpc_id                = null
+  is_hub                    = false
 }
 
 output "vpcs" {

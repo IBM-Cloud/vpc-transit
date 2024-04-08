@@ -14,13 +14,6 @@ data "terraform_remote_state" "spokes" {
     path = "../spokes_tf/terraform.tfstate"
   }
 }
-data "terraform_remote_state" "dns" {
-  backend = "local"
-
-  config = {
-    path = "../dns_tf/terraform.tfstate"
-  }
-}
 locals {
   spokes_tf       = data.terraform_remote_state.spokes.outputs
   config_tf       = data.terraform_remote_state.config.outputs

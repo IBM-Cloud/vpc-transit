@@ -25,6 +25,11 @@ variable "zones_subnets" {} # zones is a list of both address_prefixes and subne
 # the firewall to route to the firewall
 variable "make_firewall_route_table" {}
 
+variable "hub_vpc_id" {}
+variable "is_hub" {
+  type = bool
+}
+
 locals {
   name                         = var.name
   tags                         = concat(var.settings.tags, ["location:${var.name}"])
@@ -39,6 +44,24 @@ locals {
   zones = [for zone_number, subnets in var.zones_subnets : {
     zone = subnets[0].zone
   }]
+
+  # dns configuration is one of 3 possibilities
+  # if is_hub and hub_vpc_id == null:
+  #   It is the transit vpc so it needs the dns {enable_hub = true}
+  # else !is_hub and hub_vpc_id != null
+  #   It is a spoke so dns {enable_hub = false {resolver {type = delegated, vpc_id = hub_vpc_id}}}
+  # else 
+  #   It is an enterprise and no dns claiuse is required
+  transit_dns = (var.is_hub && var.hub_vpc_id == null) ? [{ enable_hub = true }] : []
+  spoke_dns = (!var.is_hub && var.hub_vpc_id != null) ? [{
+    type             = "delegated"
+    vpc_id           = var.hub_vpc_id
+    dns_binding_name = "spoke-to-transit"
+  }] : []
+}
+
+output "spoke_dns" {
+  value = local.spoke_dns
 }
 
 resource "ibm_is_vpc" "location" {
@@ -46,6 +69,25 @@ resource "ibm_is_vpc" "location" {
   resource_group            = local.resource_group_id
   address_prefix_management = "manual"
   tags                      = local.tags
+  # see comments above
+  dynamic "dns" {
+    for_each = local.transit_dns
+    content {
+      enable_hub = dns.value.enable_hub
+    }
+  }
+  # currently not used, binding in the spokes is done as a separate resource (see dns.tf)
+  dynamic "dns" {
+    for_each = local.spoke_dns
+    content {
+      enable_hub = false
+      resolver {
+        type             = dns.value.type
+        vpc_id           = dns.value.vpc_id
+        dns_binding_name = dns.value.dns_binding_name
+      }
+    }
+  }
 }
 
 # routing table to delegate all destinations to standard VPC routing.  Firewall subnet will use this table
