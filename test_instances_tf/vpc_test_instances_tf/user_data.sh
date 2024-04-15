@@ -4,7 +4,8 @@ set -x
 # See substitution in terraform
 NAME=__NAME__
 
-apt-get update
+# spoke test instances need to wait for transit gateway spoke -> transit connectivity for DNS resolution
+while ! apt-get update; do sleep 60; done
 apt-get install -y nginx net-tools ntpdate ntp postgresql-client-common postgresql-client
 ifconfig ens3 mtu 1200;# see https://jiracloud.swg.usma.ibm.com:8443/browse/VPN-365
 echo $NAME > /var/www/html/name

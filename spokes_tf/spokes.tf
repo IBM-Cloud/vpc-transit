@@ -7,6 +7,14 @@ data "terraform_remote_state" "config" {
   }
 }
 
+data "terraform_remote_state" "transit" {
+  backend = "local"
+
+  config = {
+    path = "../transit_tf/terraform.tfstate"
+  }
+}
+
 locals {
   config_tf       = data.terraform_remote_state.config.outputs
   settings        = local.config_tf.settings
@@ -20,6 +28,8 @@ locals {
     cidr          = subnet.cidr
     name          = subnet.name
   }]]]
+
+  transit_vpc = data.terraform_remote_state.transit.outputs.vpc
 }
 
 module "spokes" {
@@ -30,7 +40,7 @@ module "spokes" {
   zones_address_prefixes    = [for zone_number, zone_cidr in local.spokes_zones[each.key] : [zone_cidr]]
   zones_subnets             = local.zones_subnets[each.key]
   make_firewall_route_table = false
-  hub_vpc_id                = null
+  hub_vpc_id                = local.transit_vpc.id
   is_hub                    = false
 }
 

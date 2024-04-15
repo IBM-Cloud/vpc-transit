@@ -15,13 +15,14 @@ check_finish() {
 
 show_help() {
   cat << 'EOF'
-./apply.sh [-?] [-h] [-d] [-p] [-u] [-f no] (start | : ) | (end | : )
+./apply.sh [-?] [-h] [-d] [-s] [-p] [-u] [-f no] (start | : ) | (end | : )
 apply or destroy the resources in this example by steping into each of the terraform directories in a predfined order
 -? - this message
 -h - this message
 -p - just print the directories that would be visited do not do anything
 -d - destroy the resources in the reverse order of the apply.  Default is to apply in each directory.
      Parameters[end] and [start end] are still with respect to ascending order.  Destroy will not exit on failure.
+-s - stop on destroy failure, the default is to continue
 -u - just upgrade terraform and plugins to a new version, do not apply or destroy any resources
 -n - no auto approve on terraform apply commands.  User must type yes at every terraform prompt - there are a lot
 -r - reset terraform by removing the terraform state files in each layer.  This is very dangerous - all resources will be divorced from terraform and require manual deletion.
@@ -48,12 +49,13 @@ EOF
 all="config_tf enterprise_tf transit_tf spokes_tf test_instances_tf test_lbs_tf transit_spoke_tgw_tf enterprise_link_tf firewall_tf transit_ingress_tf spokes_egress_tf all_firewall_tf all_firewall_asym_tf dns_tf vpe_transit_tf vpe_spokes_tf power_tf"
 just_print=false
 apply=true
+stop_on_destroy_failure=false
 terraform_upgrade=false
 terraform_auto_approve="-auto-approve"
 remove_state_files="false"
 
 #OPTIND=1
-while getopts "h?cdpunr" opt; do
+while getopts "h?cdspunr" opt; do
   case "$opt" in
     h|\?)
       show_help
@@ -64,6 +66,9 @@ while getopts "h?cdpunr" opt; do
       ;;
     d)  
       apply=false
+      ;;
+    s)  
+      stop_on_destroy_failure=false
       ;;
     u)  
       terraform_upgrade=true
@@ -158,6 +163,9 @@ for dir in $tf; do
           echo '**************************************************'
           echo destroy failed
           echo '**************************************************'
+          if [ $stop_on_destroy_failure = true ]; then
+            false
+          fi
         fi
       fi
     fi

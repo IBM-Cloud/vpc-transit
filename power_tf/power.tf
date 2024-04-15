@@ -28,13 +28,6 @@ data "terraform_remote_state" "transit" {
     path = "../transit_tf/terraform.tfstate"
   }
 }
-data "terraform_remote_state" "dns" {
-  backend = "local"
-
-  config = {
-    path = "../dns_tf/terraform.tfstate"
-  }
-}
 locals {
   config_tf          = data.terraform_remote_state.config.outputs
   tls_public_key     = local.config_tf.tls_public_key
@@ -46,9 +39,7 @@ locals {
   test_instances     = data.terraform_remote_state.test_instances.outputs
   transit            = local.test_instances.transit
   transit_tf         = data.terraform_remote_state.transit.outputs
-  dns_tf             = data.terraform_remote_state.dns.outputs
-  transit_dns_ips    = [for location in local.dns_tf.transit_dns_resource.custom_resolver.locations : location.dns_server_ip]
-
+  transit_dns_ips    = [for location in local.transit_tf.dns_resource.custom_resolver.locations : location.dns_server_ip]
 
   provider_region = local.settings.region
   datacenter      = local.settings.datacenter
@@ -119,12 +110,17 @@ output "fixpower" {
   value = [for spoke_number, power_instances in module.spokes_power_instances : {
     for worker_name, worker in power_instances.workers : worker_name =>
     <<-EOS
-      # ssh -oProxyCommand="ssh -W %h:%p -i ../config_tf/id_rsa root@${values(local.transit.workers)[0].fip}" -i ../config_tf/id_rsa root@${worker.primary_ipv4_address}
-      ssh -i ../config_tf/id_rsa root@${worker.fip}
-      ip route add 10.0.0.0/8 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev eth1  
-      ip route add 172.16.0.0/12 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev eth1
-      ip route add 192.168.0.0/16 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev eth1
-      #ip route change default via ${module.spokes_power[spoke_number].power.network_public.pi_gateway} dev eth1
+      ssh -oProxyCommand="ssh -W %h:%p -i ../config_tf/id_rsa root@${values(local.transit.workers)[0].fip}" -i ../config_tf/id_rsa root@${worker.primary_ipv4_address}
+      PUBLIC=eth1
+      PRIVATE=eth0
+      # This was required one time:
+      # ssh -i ../config_tf/id_rsa root@${worker.fip}
+      # PUBLIC=eth0
+      # PRIVATE=eth1
+      ip route add 10.0.0.0/8 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev $PRIVATE  
+      ip route add 172.16.0.0/12 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev $PRIVATE
+      ip route add 192.168.0.0/16 via ${module.spokes_power[spoke_number].power.network_private.pi_gateway} dev $PRIVATE
+      ip route change default via ${module.spokes_power[spoke_number].power.network_public.pi_gateway} dev $PUBLIC
       exit
       # it is now possible to ssh directly to the public IP address
       ssh -i ../config_tf/id_rsa root@${worker.fip}

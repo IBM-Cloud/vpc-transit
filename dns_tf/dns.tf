@@ -47,9 +47,7 @@ locals {
   spoke_vpcs        = local.spokes_tf.vpcs
 
   enterprise_dns_resource = module.enterprise_dns_resource.dns_resource
-  transit_dns_resource    = module.transit_dns_resource.dns_resource
-
-  # TODO transit_dns_resource    = data.terraform_remote_state.transit.outputs.dns_resource
+  transit_dns_resource    = data.terraform_remote_state.transit.outputs.dns_resource
 }
 
 module "enterprise_dns_resource" {
@@ -61,21 +59,6 @@ module "enterprise_dns_resource" {
     subnets = [for zone in local.enterprise_vpc.zones : zone.subnets[local.settings.subnet_dns]]
   }
   tags = local.tags
-}
-
-module "transit_dns_resource" {
-  source            = "../modules/dns_resource"
-  name              = "${local.settings.basename}-transit"
-  resource_group_id = local.settings.resource_group_id
-  vpc = {
-    crn     = local.transit_vpc.crn
-    subnets = [for zone in local.transit_vpc.zones : zone.subnets[local.settings.subnet_dns]]
-  }
-  tags = local.tags
-}
-
-output "transit_dns_resource" {
-  value = module.transit_dns_resource.dns_resource
 }
 
 # create zone in enterprise DNS and populate with enterprise A records
@@ -144,107 +127,4 @@ resource "ibm_dns_custom_resolver_forwarding_rule" "spokes" {
   type        = "zone"
   match       = each.value.match
   forward_to  = [for location in each.value.destination_dns_resource.custom_resolver.locations : location.dns_server_ip]
-}
-
-# allow each spoke -> transit DNS bind to succeed
-resource "ibm_iam_authorization_policy" "policy" {
-  for_each = { for index, vpc in local.spoke_vpcs : index => vpc }
-  #"DNSBindingConnector",
-  roles = [
-    "DNS Binding Connector",
-  ]
-  subject_attributes {
-    name  = "accountId"
-    value = local.settings.account_id
-  }
-  subject_attributes {
-    name  = "serviceName"
-    value = "is"
-  }
-  subject_attributes {
-    name  = "resourceType"
-    value = "vpc"
-  }
-  subject_attributes {
-    name  = "resource"
-    value = each.value.id
-  }
-  resource_attributes {
-    name  = "accountId"
-    value = local.settings.account_id
-  }
-  resource_attributes {
-    name  = "serviceName"
-    value = "is"
-  }
-  resource_attributes {
-    name  = "vpcId"
-    value = local.transit_vpc.id
-  }
-}
-
-# spokes switch from using their own DNS to start using the hub DNS resolvers
-resource "ibm_is_vpc_dns_resolution_binding" "spoke_vpc_dns_resolution_binding_by_id" {
-  for_each   = { for index, vpc in local.spoke_vpcs : index => vpc }
-  depends_on = [module.transit_dns_resource, ibm_iam_authorization_policy.policy]
-  name       = each.value.name
-  vpc_id     = each.value.id
-  vpc {
-    id = local.transit_vpc.id
-  }
-}
-
-data "ibm_iam_auth_token" "tokendata" {}
-
-locals {
-  api_version      = "2024-04-04"
-  vpc_api_endpoint = "https://${local.settings.region}.iaas.cloud.ibm.com"
-  patch_delegated = {
-    dns = {
-      resolver = {
-        type = "delegated"
-        vpc = {
-          id = local.transit_vpc.id
-        }
-        dns_binding_name = "spoke-to-transit"
-      }
-    }
-  }
-  patch_system = {
-    dns = {
-      resolver = {
-        type = "system"
-        vpc  = null
-      }
-    }
-  }
-  iam_access_token = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
-  headers = {
-    "Content-Type"  = "application/json"
-    "Authorization" = local.iam_access_token
-  }
-}
-
-# turn on delegated in the spokes to allow DNS requests to delegate to the transit VPC DNS resolver
-resource "terracurl_request" "patch_delegated" {
-  depends_on   = [ibm_is_vpc_dns_resolution_binding.spoke_vpc_dns_resolution_binding_by_id]
-  for_each     = { for index, vpc in local.spoke_vpcs : index => vpc }
-  name         = each.value.name
-  url          = "${local.vpc_api_endpoint}/v1/vpcs/${each.value.id}?version=${local.api_version}&generation=2"
-  method       = "PATCH"
-  request_body = jsonencode(local.patch_delegated)
-  headers      = local.headers
-  response_codes = [
-    200,
-    204
-  ]
-
-  destroy_url          = "${local.vpc_api_endpoint}/v1/vpcs/${each.value.id}?version=${local.api_version}&generation=2"
-  destroy_method       = "PATCH"
-  destroy_request_body = jsonencode(local.patch_system)
-  destroy_headers      = local.headers
-  destroy_response_codes = [
-    200,
-    204
-  ]
 }
