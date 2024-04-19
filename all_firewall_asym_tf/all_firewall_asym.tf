@@ -42,7 +42,7 @@ locals {
   # In the egress zones provide more exact routes to the destination zones.
   # stays in the same zone for routes spoke : cloud (spoke/transit) -> firewall in zone
   spoke_to_spoke_lower_zone = local.settings.all_firewall ? [for spoke_number, spoke_vpc in local.spokes.vpcs : [
-    for source_zone_number in range(local.settings.zones) : [
+    for source_zone_number in local.settings.zones_range : [
       for dest_zone_number in range(0, source_zone_number) : {
         vpc           = spoke_vpc.id
         routing_table = spoke_vpc.routing_table
